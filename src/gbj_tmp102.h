@@ -268,6 +268,21 @@ float getAlertLow();
 float getAlertHigh();
 
 
+/*
+  Read configuration register value from the sensor.
+
+  DESCRIPTION:
+  The method reads configuration register and its value stores in the instance
+  object, so that it caches it.
+
+  PARAMETERS: none
+
+  RETURN:
+  Result code.
+*/
+uint8_t getConfiguration();
+
+
 private:
 //------------------------------------------------------------------------------
 // Private constants
@@ -358,6 +373,8 @@ int16_t calculateTemperature(float temperature);
 uint8_t activateRegister(uint8_t cmdRegister);
 
 uint8_t readConfigRegister();
+
+// Wrappers for parent busSend method in order to embed caching pointer register
 uint8_t sensorSend(uint16_t command, uint16_t data);
 uint8_t sensorSend(uint16_t data);
 

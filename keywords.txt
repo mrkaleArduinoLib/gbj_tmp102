@@ -26,6 +26,7 @@ configTermostatMode	KEYWORD2
 configOneshotMode	KEYWORD2
 configAlertActiveLow	KEYWORD2
 configAlertActiveHigh	KEYWORD2
+getConfiguration	KEYWORD2
 getExtendedMode	KEYWORD2
 getNormalMode	KEYWORD2
 getAlert	KEYWORD2

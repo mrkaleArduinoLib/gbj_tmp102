@@ -112,6 +112,7 @@ Other error codes as well as result code are inherited from the parent library [
 - [configOneshotMode()](#configOneshotMode)
 
 #### Getters
+- [getConfiguration()](#getConfiguration)
 - [getExtendedMode()](#getResolutionMode)
 - [getNormalMode()](#getResolutionMode)
 - [getShutdownMode()](#getPowerMode)

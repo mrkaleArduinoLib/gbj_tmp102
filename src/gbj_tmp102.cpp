@@ -14,7 +14,7 @@ uint8_t gbj_tmp102::reset()
 {
   if (busGeneralReset()) return setLastResult(ERROR_RESET);
   _status.pointerRegister = CMD_REG_NONE;
-  if (readConfigRegister()) return getLastResult();
+  if (getConfiguration()) return getLastResult();
   if (_status.configRegister != RESET_REG_CONFIG) return setLastResult(ERROR_RESET);
   wait(TIMING_CONVERSION);
   return getLastResult();
@@ -26,6 +26,7 @@ float gbj_tmp102::measureTemperature()
   uint8_t data[2];
   if (activateRegister(CMD_REG_TEMP)) return getLastResult();
   if (busReceive(data, sizeof(data)/sizeof(data[0]))) return setLastResult(ERROR_MEASURE_TEMP);
+  if (getConfiguration()) return getLastResult();
   int16_t wordMeasure;
   wordMeasure = data[0] << 8;  // MSB
   wordMeasure |= data[1];  // LSB
@@ -42,7 +43,7 @@ float gbj_tmp102::measureTemperatureOneshot()
   // Wait for conversion
   do
   {
-    if (readConfigRegister()) return getLastResult();
+    if (getConfiguration()) return getLastResult();
     wait(TIMING_CONVERSION);
   }
   while(!getOneshotMode());
@@ -74,7 +75,7 @@ uint8_t gbj_tmp102::setConfiguration(bool flagWait)
 {
   if (sensorSend(CMD_REG_CONF, _status.configRegister)) return getLastResult();
   if (flagWait) wait(TIMING_CONVERSION);
-  if (readConfigRegister()) return getLastResult();
+  if (getConfiguration()) return getLastResult();
   return getLastResult();
 }
 
@@ -140,6 +141,17 @@ float gbj_tmp102::getAlertHigh()
 }
 
 
+uint8_t gbj_tmp102::getConfiguration()
+{
+  uint8_t data[2];
+  if (activateRegister(CMD_REG_CONF)) return getLastResult();
+  if (busReceive(data, sizeof(data)/sizeof(data[0]))) return getLastResult();
+  _status.configRegister = data[0] << 8;  // MSB
+  _status.configRegister |= data[1];  // LSB
+  return getLastResult();
+}
+
+
 //------------------------------------------------------------------------------
 // Private methods
 //------------------------------------------------------------------------------
@@ -177,17 +189,6 @@ uint8_t gbj_tmp102::activateRegister(uint8_t cmdRegister)
   {
     if (sensorSend(cmdRegister)) return getLastResult();
   }
-  return getLastResult();
-}
-
-
-uint8_t gbj_tmp102::readConfigRegister()
-{
-  uint8_t data[2];
-  if (activateRegister(CMD_REG_CONF)) return getLastResult();
-  if (busReceive(data, sizeof(data)/sizeof(data[0]))) return getLastResult();
-  _status.configRegister = data[0] << 8;  // MSB
-  _status.configRegister |= data[1];  // LSB
   return getLastResult();
 }
 
