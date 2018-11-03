@@ -1,0 +1,46 @@
+#######################################
+# Syntax Coloring Map
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+gbj_tmp102	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+begin	KEYWORD2
+reset	KEYWORD2
+measureTemperature	KEYWORD2
+measureTemperatureOneshot	KEYWORD2
+setConfiguration	KEYWORD2
+setAlertLow	KEYWORD2
+setAlertHigh	KEYWORD2
+configExtendedMode	KEYWORD2
+configNormalMode	KEYWORD2
+configShutdownMode	KEYWORD2
+configContinuousMode	KEYWORD2
+configInterruptMode	KEYWORD2
+configTermostatMode	KEYWORD2
+configOneshotMode	KEYWORD2
+configAlertActiveLow	KEYWORD2
+configAlertActiveHigh	KEYWORD2
+getExtendedMode	KEYWORD2
+getNormalMode	KEYWORD2
+getAlert	KEYWORD2
+getShutdownMode	KEYWORD2
+getContinuousMode	KEYWORD2
+getInterruptMode	KEYWORD2
+getTermostatMode	KEYWORD2
+getOneshotMode	KEYWORD2
+getAlertActiveHigh	KEYWORD2
+getAlertActiveLow	KEYWORD2
+getConversionRate	KEYWORD2
+getFaultQueue	KEYWORD2
+getAlertLow	KEYWORD2
+getAlertHigh	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
