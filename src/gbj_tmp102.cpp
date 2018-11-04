@@ -13,10 +13,7 @@ uint8_t gbj_tmp102::begin(uint8_t address)
 uint8_t gbj_tmp102::reset()
 {
   if (busGeneralReset()) return setLastResult(ERROR_RESET);
-  _status.pointerRegister = CMD_REG_NONE;
-  if (getConfiguration()) return getLastResult();
-  if (_status.configRegister != RESET_REG_CONFIG) return setLastResult(ERROR_RESET);
-  wait(TIMING_CONVERSION);
+  if (init()) return setLastResult(ERROR_RESET);
   return getLastResult();
 }
 
@@ -205,5 +202,15 @@ uint8_t gbj_tmp102::sensorSend(uint16_t data)
 {
   if (busSend(data)) return getLastResult();
   _status.pointerRegister = data;
+  return getLastResult();
+}
+
+
+uint8_t gbj_tmp102::init()
+{
+  _status.pointerRegister = CMD_REG_NONE;
+  if (getConfiguration()) return getLastResult();
+  if (_status.configRegister != RESET_REG_CONFIG) return setLastResult(ERROR_RESET);
+  wait(TIMING_CONVERSION);
   return getLastResult();
 }

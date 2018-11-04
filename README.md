@@ -113,6 +113,11 @@ Other error codes as well as result code are inherited from the parent library [
 
 #### Getters
 - [getConfiguration()](#getConfiguration)
+- [getAlertActiveLow()](#getAlertMode)
+- [getAlertActiveHigh()](#getAlertMode)
+- [getAlertLow()](#getAlertValue)
+- [getAlertHigh()](#getAlertValue)
+- [getAlert()](#getAlert)
 - [getExtendedMode()](#getResolutionMode)
 - [getNormalMode()](#getResolutionMode)
 - [getShutdownMode()](#getPowerMode)
@@ -122,11 +127,6 @@ Other error codes as well as result code are inherited from the parent library [
 - [getConversionRate()](#getConversionRate)
 - [getFaultQueue()](#getFaultQueue)
 - [getOneshotMode()](#getOneshotMode)
-- [getAlert()](#getAlert)
-- [getAlertActiveLow()](#getAlertMode)
-- [getAlertActiveHigh()](#getAlertMode)
-- [getAlertLow()](#getAlertValue)
-- [getAlertHigh()](#getAlertValue)
 
 Other possible setters and getters are inherited from the parent library [gbjTwoWire](#dependency) and described there.
 
@@ -219,11 +219,11 @@ The method resets the sensor by the general call software reset sending the code
 - Upper alert temperature limit 80 centigrade.
 - Lower alert temperature limit 75 centigrade.
 - Normal mode (12 bit).
-- Alert active.
 - Conversion rate 4 Hz.
 - Continuous power mode (shutdown mode off).
 - Thermostat (comparator) mode.
 - Alert pin active low.
+- Alert active.
 - One fault for fault queue.
 - One-shot conversion off.
 
@@ -246,6 +246,7 @@ Some of [result or error codes](#constants).
 ## measureTemperature()
 #### Description
 The method measures temperature.
+- After each temperature reading the method reads the configuration register with the method [getConfiguration()](#getConfiguration) as well and its content stores in the instance object. It is essential for reading alert status with the method [getAlert()](#getAlert).
 
 #### Syntax
     float measureTemperature();
@@ -267,6 +268,7 @@ Temperature in centigrade or the error value [gbj\_tmp102::ERROR\_MEASURE\_TEMP]
 #### Description
 The method configures shutdown mode and one-shot conversion of the sensor. It waits until conversion finishes and returns ambient temperature in centigrade.
 - The method is useful at very long periods (couple of minutes and hours) between measurements in order to save power consumption.
+- After each temperature reading the method reads the configuration register with the method [getConfiguration()](#getConfiguration) as well and its content stores in the instance object. It is essential for reading alert status with the method [getAlert()](#getAlert).
 
 #### Syntax
     float measureTemperatureOneshot();
@@ -283,50 +285,35 @@ Temperature in centigrade or the error value [gbj\_tmp102::ERROR\_MEASURE\_TEMP]
 [Back to interface](#interface)
 
 
-<a id="setResolution"></a>
-## setResolution()
+<a id="setConfiguration"></a>
+## setConfiguration()
 #### Description
-The method sets the bit resolution by input parameter, which should be appropriate library [constant](#resolution).
-The resolution is determined by that constant but in fact it is the bit resolution for temperature.
+The method writes the new content of the configuration register stored in the instance object (configuration cache) to the sensor. This content should has been prepared by methods of type `configXXX` right before.
 
 #### Syntax
-    uint8_t setResolution(uint8_t resolution = gbj_tmp102::RESOLUTION_T14_RH12);
+    uint8_t setConfiguration(bool flagWait);
 
 #### Parameters
-<a id="resolution"></a>
-- **resolution**: Desired measurement resolution in bits.
-  - *Valid values*:  [gbj\_tmp102::RESOLUTION\_T14\_RH12](#resolution), [gbj\_tmp102::RESOLUTION\_T13\_RH10](#resolution),  [gbj\_tmp102::RESOLUTION\_T12\_RH8](#resolution), or [gbj\_tmp102::RESOLUTION\_T11\_RH11](#resolution)
-  - *Default value*: [gbj\_tmp102::RESOLUTION\_T14\_RH12](#resolution)
+- **flagWait**: Flag about waiting after writing to the configuration register. The waiting delay is defined in the library internally. No delay is used in the method [measureTemperatureOneshot()](#measureTemperatureOneshot).
+  - *Valid values*: true, false
+  - *Default value*: true
 
 #### Returns
 Some of [result or error codes](#constants).
 
 #### See also
-[setResolutionTemp11(), setResolutionTemp12(), setResolutionTemp13(), setResolutionTemp14()](#setResolutionTemp)
-
-[setResolutionRhum8(), setResolutionRhum10(), setResolutionRhum11(), setResolutionRhum12()](#setResolutionRhum)
+[getConfiguration()](#getConfiguration)
 
 [Back to interface](#interface)
 
 
-<a id="setResolutionTemp"></a>
-## setResolutionTemp11(), setResolutionTemp12(), setResolutionTemp13(), setResolutionTemp14()
+<a id="getConfiguration"></a>
+## getConfiguration()
 #### Description
-The particular method sets the bit resolution for temperature measurement to the value in its name.
-The method sets the corresponding bit resolution for the relative humidity measurement at the same time by this relation:
-
-Temperature | Relative Humidity
------- | -------
-11 | 11
-12 | 8
-13 | 10
-14 | 12
+The method reads configuration register and its value stores in the instance object, so that it caches it and enables it for corresponding getters.
 
 #### Syntax
-    uint8_t setResolutionTemp11();
-    uint8_t setResolutionTemp12();
-    uint8_t setResolutionTemp13();
-    uint8_t setResolutionTemp14();
+    uint8_t getConfiguration();
 
 #### Parameters
 None
@@ -335,164 +322,118 @@ None
 Some of [result or error codes](#constants).
 
 #### See also
-[setResolution()](#setResolution)
-
-[getResolutionTemp()](#getResolutionTemp)
+[setConfiguration()](#setConfiguration)
 
 [Back to interface](#interface)
 
 
-<a id="getResolutionTemp"></a>
-## getResolutionTemp()
+<a id="setAlertValue"></a>
+## setAlertLow(), setAlertHigh()
 #### Description
-The method returns the temperature measurement resolution in bits.
+The particular method writes lower or upper temperature limit to the sensor.
+- If an illogical limit value in comparison to its counterpart is provided, the error [gbj\_tmp102::ERROR\_SETUP\_TEMP](#errors)  is raised, e.g., than lower limit is greater than upper limit.
 
 #### Syntax
-    uint8_t getResolutionTemp();
+    uint8_t setAlertLow(float temperature);
+    uint8_t setAlertHigh(float temperature);
 
 #### Parameters
-None
-
-#### Returns
-Bit resolution (11, 12, 13, or 14) or some of [error codes](#errors).
-
-#### See also
-[setResolution()](#setResolution)
-
-[setResolutionTemp11(), setResolutionTemp12(), setResolutionTemp13(), setResolutionTemp14()](#setResolutionTemp)
-
-[Back to interface](#interface)
-
-
-<a id="setResolutionRhum"></a>
-## setResolutionRhum8(), setResolutionRhum10(), setResolutionRhum11(), setResolutionRhum12()
-#### Description
-The particular method sets the bit resolution for relative humidity measurement to the value in its name.
-The method sets the corresponding bit resolution for the temperature measurement at the same time by this relation:
-
-Relative Humidity | Temperature
------- | -------
-11 | 11
-8 | 12
-10 | 13
-12 | 14
-
-#### Syntax
-    uint8_t setResolutionRhum8();
-    uint8_t setResolutionRhum10();
-    uint8_t setResolutionRhum11();
-    uint8_t setResolutionRhum12();
-
-#### Parameters
-None
+- **temperature**: Temperature limit in centigrade.
+  - *Valid values*: -55.0 ~ 150.0
+  - *Default value*: none
 
 #### Returns
 Some of [result or error codes](#constants).
 
 #### See also
-[setResolution()](#setResolution)
+[getAlertLow(), getAlertHigh()](#getAlertValue)
 
 [Back to interface](#interface)
 
 
-<a id="getResolutionRhum"></a>
-## getResolutionRhum()
+<a id="getAlertValue"></a>
+## getAlertLow(), getAlertHigh()
 #### Description
-The method returns the relative humidity measurement resolution in bits.
+The particular method reads upper or lower temperature limit from the sensor.
 
 #### Syntax
-    uint8_t getResolutionRhum();
+    float getAlertLow();
+    float getAlertHigh();
 
 #### Parameters
 None
 
 #### Returns
-Bit resolution (8, 10, 11, or 12) or some of [error codes](#errors).
+Lower or upper temperature limit or an [error code](#errors) cached in the library object.
 
 #### See also
-[setResolution()](#setResolution)
-
-[setResolutionRhum8(), setResolutionRhum10(), setResolutionRhum11(), setResolutionRhum12()](#setResolutionRhum)
+[setAlertLow(), setAlertHigh()](#setAlertValue)
 
 [Back to interface](#interface)
 
 
-<a id="setHeater"></a>
-## setHeaterEnabled(), setHeaterDisabled()
+<a id="configAlertMode"></a>
+## configAlertActiveLow(), configAlertActiveHigh()
 #### Description
-The particular method turns on or off a heater built-in in the sensor.
+The particular method updates alert activity bit state in the cached configuration value before its sending to the sensor by the method [setConfiguration()](#setConfiguration).
 
 #### Syntax
-    uint8_t setHeaterEnabled();
-    uint8_t setHeaterDisabled();
+    void configAlertActiveLow();
+    void configAlertActiveHigh();
 
 #### Parameters
 None
 
 #### Returns
-Some of [result or error codes](#constants).
-
-[Back to interface](#interface)
-
-
-<a id="getHeaterEnabled"></a>
-## getHeaterEnabled()
-#### Description
-The method returns the status of the sensor's heater.
-
-#### Syntax
-    bool getHeaterEnabled();
-
-#### Parameters
 None
-
-#### Returns
-Flag about the heater switched on or off.
-- **true**: The heater is on.
-- **false**: The heater is off.
 
 #### See also
-[setHeaterEnabled()](#setHeater)
+[getAlertActiveLow(), getAlertActiveHigh()](#getAlertMode)
 
-[setHeaterDisabled()](#setHeater)
+[setConfiguration()](#setConfiguration)
 
 [Back to interface](#interface)
 
 
-<a id="getSerial"></a>
-## getSNA(), getSNB(), getSNC(), getSerialNumber()
+<a id="getAlertMode"></a>
+## getAlertActiveLow(), getAlertActiveHigh()
 #### Description
-The particular method returns the corresponding 16-bit or 32-bit part of the serial number and the entire 64-bit serial number of the sensor.
+The particular method determines flag about alert activity bit state from the cached configuration value.
 
 #### Syntax
-    uint16_t getSNA();
-    uint32_t getSNB();
-    uint16_t getSNC();
-    uint64_t getSerialNumber();
+    bool getAlertActiveLow();
+    bool getAlertActiveHigh();
 
 #### Parameters
 None
 
 #### Returns
-Particular part of, or entire serial number, or some of [error codes](#errors).
+Flag about set particular alert activity mode.
+
+#### See also
+[configAlertActiveLow(), configAlertActiveHigh()](#configAlertMode)
+
+[getConfiguration()](#getConfiguration)
 
 [Back to interface](#interface)
 
 
-<a id="getVddStatus"></a>
-## getVddStatus()
+<a id="getAlert"></a>
+## getAlert()
 #### Description
-The method returns the status of the supply voltage, which the sensor is powered by.
+The method provides flag about state of alert pin from cached configuration value.
+- It is suitable for detecting the alert by software without need of hardware sensing the ALERT pin of the sensor.
 
 #### Syntax
-    bool getVddStatus();
+    bool getAlert();
 
 #### Parameters
 None
 
 #### Returns
-Flag about the correctness of the operating voltage.
-- **true**: The voltage is correct.
-- **false**: The voltage is incorrect.
+Flag about ALERT pin state.
+
+#### See also
+[getConfiguration()](#getConfiguration)
 
 [Back to interface](#interface)

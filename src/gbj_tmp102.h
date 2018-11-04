@@ -141,8 +141,6 @@ float measureTemperatureOneshot();
 //------------------------------------------------------------------------------
 // Public setters - they usually return result code.
 //------------------------------------------------------------------------------
-uint8_t setAddress(uint8_t address);
-
 /*
   Write configuration register value to the sensor.
 
@@ -216,12 +214,12 @@ void configFaultQueue(uint8_t faults);
   Read high or low temperature limit from the sensor.
 
   DESCRIPTION:
-  The particular method reads THIGH or TLOW register and calculates its
-  temperature in centigrades according toe the extended mode taken from
-  configuration register.
+  The particular method calculates temperature limit raw value from input
+  temperature in centigrades according to the extended mode taken from
+  configuration register and writes it to the sensor.
 
   PARAMETERS:
-  temperature - Limit temperature in centigrades.
+  temperature - Temperature limit in centigrades.
                 - Data type: float
                 - Default value: none
                 - Limited range: -55.0 ~ 150.0
@@ -256,7 +254,7 @@ inline uint8_t getFaultQueue() { return (_status.configRegister >> CONFIG_F0) & 
 
   DESCRIPTION:
   The particular method reads THIGH or TLOW register and calculates its
-  temperature in centigrades according toe the extended mode taken from
+  temperature in centigrades according to the extended mode taken from
   configuration register.
 
   PARAMETERS: none
@@ -332,6 +330,24 @@ struct
 //------------------------------------------------------------------------------
 // Private methods - they return result code if not stated else
 //------------------------------------------------------------------------------
+uint8_t setAddress(uint8_t address);
+
+
+/*
+  Initialize sensor.
+
+  DESCRIPTION:
+  The method reads configuration register and stores it in the instance objec
+  and executes other initialization tasks.
+
+  PARAMETERS: none
+
+  RETURN:
+  Result code.
+*/
+uint8_t init();
+
+
 /*
   Calculate temperature or temperature register value.
 
@@ -371,8 +387,6 @@ int16_t calculateTemperature(float temperature);
   Result code.
 */
 uint8_t activateRegister(uint8_t cmdRegister);
-
-uint8_t readConfigRegister();
 
 // Wrappers for parent busSend method in order to embed caching pointer register
 uint8_t sensorSend(uint16_t command, uint16_t data);
