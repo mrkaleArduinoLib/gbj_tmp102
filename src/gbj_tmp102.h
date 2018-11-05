@@ -229,6 +229,7 @@ void configFaultQueue(uint8_t faults);
 */
 uint8_t setAlertLow(float temperature);
 uint8_t setAlertHigh(float temperature);
+uint8_t setAlerts(float temperatureLow, float temperatureHigh);
 
 
 

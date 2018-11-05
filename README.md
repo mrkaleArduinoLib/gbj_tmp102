@@ -91,7 +91,7 @@ Other error codes as well as result code are inherited from the parent library [
 ## Configuration
 The configuration of the sensor is realized by the configuration register, which consist of several configuration bits determining its behaviour. The library stores (caches) the value of the configuration register in its instance object.
 
-The sensor configuration implemented in the library is based on updating cached configuration value in advanced and finally to send that value to the sensor and write all configuration bits to configuration register at once in order to reduce communication on the two-wire bus in contrast to sending configuration bits to the sensor individually. 
+The sensor configuration implemented in the library is based on updating cached configuration value in advanced and finally to send that value to the sensor and write all configuration bits to configuration register at once in order to reduce communication on the two-wire bus in contrast to sending configuration bits to the sensor individually.
 
 
 <a id="interface"></a>
@@ -108,6 +108,7 @@ The sensor configuration implemented in the library is based on updating cached 
 - [setConfiguration()](#setConfiguration)
 - [setAlertLow()](#setAlertValue)
 - [setAlertHigh()](#setAlertValue)
+- [setAlerts()](#setAlertValue)
 - [configAlertActiveLow()](#configAlertMode)
 - [configAlertActiveHigh()](#configAlertMode)
 - [configExtendedMode()](#configResolutionMode)
@@ -337,17 +338,19 @@ Some of [result or error codes](#constants).
 
 
 <a id="setAlertValue"></a>
-## setAlertLow(), setAlertHigh()
+## setAlertLow(), setAlertHigh(), setAlerts()
 #### Description
-The particular method writes lower or upper temperature limit to the sensor.
+The particular method writes either lower or upper temperature limit, or both at once to the sensor.
 - If an illogical limit value in comparison to its counterpart is provided, the error [gbj\_tmp102::ERROR\_SETUP\_TEMP](#errors)  is raised, e.g., than lower limit is greater than upper limit.
+- If both limits are set at once, they are sorted ascending at first.
 
 #### Syntax
-    uint8_t setAlertLow(float temperature);
-    uint8_t setAlertHigh(float temperature);
+    uint8_t setAlertLow(float temperatureLow);
+    uint8_t setAlertHigh(float temperatureHigh);
+    uint8_t setAlerts(float temperatureLow, float temperatureHigh);
 
 #### Parameters
-- **temperature**: Temperature limit in centigrade.
+- **temperatureLow**, **temperatureHigh**: Particular temperature limit in centigrade.
   - *Valid values*: -55.0 ~ 150.0
   - *Default value*: none
 
@@ -376,7 +379,7 @@ None
 Lower or upper temperature limit or an [error code](#errors) cached in the library object.
 
 #### See also
-[setAlertLow(), setAlertHigh()](#setAlertValue)
+[setAlertLow(), setAlertHigh(), setAlerts()](#setAlertValue)
 
 [Back to interface](#interface)
 
@@ -456,7 +459,7 @@ The particular method turns on corresponding resolution mode in the cached confi
 - At *extended* mode the resolution is the 13-bit resolution.
 - Extended mode does not increase sensitivity, just extents the upper temperature measurement range from +128 to +150 centigrades. So that in normal working conditions it is not very useful.
 - After changing resolution mode and writing it to the sensor it is needed to wait cca 350 milliseconds in order to settle the sensor and provide conversion. Otherwise the first conversion after changing resolution to extended mode from normal one doubles the measured temperature and after changing to normal mode from extended one halves the temperature, which might confuse follow-up logic or controlling mechanizm.
-- The library does not have extra delay after resolution change implemented, so that it must be enforced in a sketch. 
+- The library does not have extra delay after resolution change implemented, so that it must be enforced in a sketch.
 
 #### Syntax
     void configExtendedMode();

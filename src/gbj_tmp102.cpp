@@ -109,6 +109,20 @@ uint8_t gbj_tmp102::setAlertHigh(float temperature)
 }
 
 
+uint8_t gbj_tmp102::setAlerts(float temperatureLow, float temperatureHigh)
+{
+  if (temperatureLow > temperatureHigh)
+  {
+    float temp = temperatureLow;
+    temperatureLow = temperatureHigh;
+    temperatureHigh = temp;
+  }
+  if (sensorSend(CMD_REG_TLOW, calculateTemperature(temperatureLow))) return getLastResult();
+  if (sensorSend(CMD_REG_THIGH, calculateTemperature(temperatureHigh))) return getLastResult();
+  return getLastResult();
+}
+
+
 //------------------------------------------------------------------------------
 // Getters
 //------------------------------------------------------------------------------

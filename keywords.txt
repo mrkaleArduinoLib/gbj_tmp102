@@ -17,6 +17,7 @@ measureTemperatureOneshot	KEYWORD2
 setConfiguration	KEYWORD2
 setAlertLow	KEYWORD2
 setAlertHigh	KEYWORD2
+setAlerts	KEYWORD2
 configExtendedMode	KEYWORD2
 configNormalMode	KEYWORD2
 configShutdownMode	KEYWORD2
