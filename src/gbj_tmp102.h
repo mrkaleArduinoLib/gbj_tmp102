@@ -166,9 +166,9 @@ inline void configShutdownMode() { _status.configRegister |= (1 << CONFIG_SD); }
 inline void configContinuousMode() { _status.configRegister &= ~(1 << CONFIG_SD); };
 inline void configInterruptMode() { _status.configRegister |= (1 << CONFIG_TM); };
 inline void configThermostatMode() { _status.configRegister &= ~(1 << CONFIG_TM); };
-inline void configOneshotMode() { _status.configRegister |= (1 << CONFIG_OS); };
 inline void configAlertActiveHigh() { _status.configRegister |= (1 << CONFIG_POL); };
 inline void configAlertActiveLow() { _status.configRegister &= ~(1 << CONFIG_POL); };
+inline void configOneshotMode() { _status.configRegister |= (1 << CONFIG_OS); };
 
 
 /*
@@ -242,9 +242,9 @@ inline bool getShutdownMode() { return _status.configRegister & (1 << CONFIG_SD)
 inline bool getContinuousMode() { return !getShutdownMode(); };
 inline bool getInterruptMode() { return _status.configRegister & (1 << CONFIG_TM); };
 inline bool getThermostatMode() { return !getInterruptMode(); };
-inline bool getOneshotMode() { return _status.configRegister & (1 << CONFIG_OS); };
 inline bool getAlertActiveHigh() { return _status.configRegister & (1 << CONFIG_POL); };
 inline bool getAlertActiveLow() { return !getAlertActiveHigh(); };
+inline bool getOneshotMode() { return _status.configRegister & (1 << CONFIG_OS); };
 inline uint8_t getConversionRate() { return (_status.configRegister >> CONFIG_CR0) & B11; };
 inline uint8_t getFaultQueue() { return (_status.configRegister >> CONFIG_F0) & B11; };
 

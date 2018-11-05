@@ -1,16 +1,16 @@
 <a id="library"></a>
 # gbjTMP102
 Library for the temperature sensors *TMP102* communicating on two-wire (I2C) bus.
-- Sensor address is
+- Sensor can have following addresses, which allows up to 4 sensors present on the same two-wire bus:
   - `0x48` for ADD0 pin connected to GND (ground)
   - `0x49` for ADD0 pin connected to V+ (power supply positive rail)
   - `0x4A` for ADD0 pin connected to SDA (serial data rail of the two-wire bus)
   - `0x4B` for ADD0 pin connected to SCL (serial clock rail of the two-wire bus)
 - The library provides measured temperature in degrees of Celsius.
-- For conversion among various temperature unit scales and for calculating dew point temperature use library **gbjAppHelpers**.
-- The resolution of the sensor in normal mod is 12 bit with sensitivity 0.0625 centigrade with measurement range -55 to +128 centigrade.
-- The extended mode has resolution 13 bit, but the same sensitivity and it just extends the upper measurement range up to +150 centigrade.
-  - Switching (reconfiguration) to extended mode from normal mode or vice-versa needs a time delay cca 500 milliseconds after it in order to settle the sensor and stabilize the temperature conversion.
+- For conversion among various temperature unit scales and for calculating dew point temperature use library *gbjAppHelpers*.
+- The sensor in normal mode has 12 bit resolution with sensitivity 0.0625 centigrade with measurement range -55 to +128 centigrade.
+- The extended mode has 13 bit resolution, but the same sensitivity and it just extends the upper temperature measurement range up to +150 centigrade.
+  - Switching (reconfiguration) to extended mode from normal mode or vice-versa needs a time delay cca 350 milliseconds after it in order to settle the sensor and stabilize the temperature conversion.
   - Without the delay after switching to extended mode the reading is doubled to real temperature at first reading after switching mode.
   - Without the delay after switching to normal mode the reading is halved to real temperature at first reading after switching mode.
   - Library does not have implemented such specific delay after mode switching due to small usefulness of the extended mode.
@@ -42,7 +42,7 @@ Library for the temperature sensors *TMP102* communicating on two-wire (I2C) bus
 - **TwoWire**: I2C system library loaded from the file *Wire.h*.
 
 #### Custom Libraries
-- **gbjTwoWire**: I2C custom library loaded from the file *gbj_twowire.h*. The library [gbjSI70](#library) inherits common bus functionality from this library.
+- **gbjTwoWire**: I2C custom library loaded from the file *gbj_twowire.h*. The library [gbjTMP102](#library) inherits common bus functionality from this library.
 
 
 <a id="constants"></a>
@@ -51,7 +51,7 @@ Library for the temperature sensors *TMP102* communicating on two-wire (I2C) bus
 
 
 <a id="addresses"></a>
-#### Measurement resolutions
+#### Addresses
 - **gbj\_tmp102::ADDRESS\_GND**: ADD0 pin connected to GND pin (default).
 - **gbj\_tmp102::ADDRESS\_VCC**: ADD0 pin connected to positive power supply rail.
 - **gbj\_tmp102::ADDRESS\_SDA**: ADD0 pin connected to serial data rail of two-wire bus.
@@ -87,6 +87,13 @@ Library for the temperature sensors *TMP102* communicating on two-wire (I2C) bus
 Other error codes as well as result code are inherited from the parent library [gbjTwoWire](#dependency).
 
 
+<a id="configuration"></a>
+## Configuration
+The configuration of the sensor is realized by the configuration register, which consist of several configuration bits determining its behaviour. The library stores (caches) the value of the configuration register in its instance object.
+
+The sensor configuration implemented in the library is based on updating cached configuration value in advanced and finally to send that value to the sensor and write all configuration bits to configuration register at once in order to reduce communication on the two-wire bus in contrast to sending configuration bits to the sensor individually. 
+
+
 <a id="interface"></a>
 ## Interface
 
@@ -109,6 +116,8 @@ Other error codes as well as result code are inherited from the parent library [
 - [configContinuousMode()](#configPowerMode)
 - [configInterruptMode()](#configActionMode)
 - [configThermostatMode()](#configActionMode)
+- [configConversionRate()](#configConversionRate)
+- [configFaultQueue()](#configFaultQueue)
 - [configOneshotMode()](#configOneshotMode)
 
 #### Getters
@@ -215,7 +224,7 @@ Some of [result or error codes](#constants).
 <a id="reset"></a>
 ## reset()
 #### Description
-The method resets the sensor by the general call software reset sending the code 0x06 to the two-wire bus at address 0x00 and reads the content of the configuration register to the library instance object. Software reset causes resetting all internal registers to their power-up values, which determine following configuration and values:
+The method resets the sensor by the general call software reset sending the code `0x06` to the two-wire bus at address `0x00` and reads the content of the configuration register to the library instance object. Software reset causes resetting all internal registers to their power-up values, which determine following configuration and values:
 - Upper alert temperature limit 80 centigrade.
 - Lower alert temperature limit 75 centigrade.
 - Normal mode (12 bit).
@@ -398,7 +407,7 @@ None
 <a id="getAlertMode"></a>
 ## getAlertActiveLow(), getAlertActiveHigh()
 #### Description
-The particular method determines flag about alert activity bit state from the cached configuration value.
+The particular method determines flag about alert activity mode from the cached configuration value.
 
 #### Syntax
     bool getAlertActiveLow();
@@ -434,6 +443,290 @@ None
 Flag about ALERT pin state.
 
 #### See also
+[getConfiguration()](#getConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="configResolutionMode"></a>
+## configExtendedMode(), configNormalMode()
+#### Description
+The particular method turns on corresponding resolution mode in the cached configuration value before its sending to the sensor by the method [setConfiguration()](#setConfiguration).
+- At *normal* mode the resolution is the 12-bit resolution.
+- At *extended* mode the resolution is the 13-bit resolution.
+- Extended mode does not increase sensitivity, just extents the upper temperature measurement range from +128 to +150 centigrades. So that in normal working conditions it is not very useful.
+- After changing resolution mode and writing it to the sensor it is needed to wait cca 350 milliseconds in order to settle the sensor and provide conversion. Otherwise the first conversion after changing resolution to extended mode from normal one doubles the measured temperature and after changing to normal mode from extended one halves the temperature, which might confuse follow-up logic or controlling mechanizm.
+- The library does not have extra delay after resolution change implemented, so that it must be enforced in a sketch. 
+
+#### Syntax
+    void configExtendedMode();
+    void configNormalMode();
+
+#### Parameters
+None
+
+#### Returns
+None
+
+#### See also
+[getExtendedMode(), getNormalMode()](#getResolutionMode)
+
+[setConfiguration()](#setConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="getResolutionMode"></a>
+## getExtendedMode(), getNormalMode()
+#### Description
+The particular method determines flag about resolution mode state from the cached configuration value.
+
+#### Syntax
+    bool getExtendedMode();
+    bool getNormalMode();
+
+#### Parameters
+None
+
+#### Returns
+Flag about set particular resolution mode.
+
+#### See also
+[configExtendedMode(), configNormalMode()](#configResolutionMode)
+
+[getConfiguration()](#getConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="configPowerMode"></a>
+## configShutdownMode(), configContinuousMode()
+#### Description
+The particular method turns on corresponding power mode in the cached configuration value before its sending to the sensor by the method [setConfiguration()](#setConfiguration).
+- At *shutdown* mode the sensor turns on all its system except the serial interface and reduces power consumption. This mode is utilized by the method [measurementTemperatureOneshot()](#measurementTemperatureOneshot) for one-shot temperature measurement.
+- At *continuous* mode the sensor performs continuous temperature conversion according to its [current conversion rate](#getConversionRate).
+
+#### Syntax
+    void configShutdownMode();
+    void configContinuousMode();
+
+#### Parameters
+None
+
+#### Returns
+None
+
+#### See also
+[getShutdownMode(), getContinuousMode()](#getPowerMode)
+
+[setConfiguration()](#setConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="getPowerMode"></a>
+## getShutdownMode(), getContinuousMode()
+#### Description
+The particular method determines flag about power mode state from the cached configuration value.
+
+#### Syntax
+    bool getShutdownMode();
+    bool getContinuousMode();
+
+#### Parameters
+None
+
+#### Returns
+Flag about set particular power mode.
+
+#### See also
+[configShutdownMode(), configContinuousMode()](#configPowerMode)
+
+[getConfiguration()](#getConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="configActionMode"></a>
+## configInterruptMode(), configThermostatMode()
+#### Description
+The particular method turns on corresponding action mode in the cached configuration value before its sending to the sensor by the method [setConfiguration()](#setConfiguration).
+- At *interruption* mode the sensor generates a short impulse on ALERT pin at reaching particular temperature limit with particular polarity according to the [alert activity mode](#configAlertActivityMode).
+- At *termostat* mode the sensor changes state of ALERT pin at reaching a temperature limit with particular polarity according to the [alert activity mode](#configAlertActivityMode) and keeps it until reaching another temperature limit.
+
+#### Syntax
+    void configInterruptMode();
+    void configThermostatMode();
+
+#### Parameters
+None
+
+#### Returns
+None
+
+#### See also
+[getInterruptMode(), getThermostatMode()](#getActionMode)
+
+[setConfiguration()](#setConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="getActionMode"></a>
+## getInterruptMode(), getThermostatMode()
+#### Description
+The particular method determines flag about action mode state from the cached configuration value.
+
+#### Syntax
+    bool getInterruptMode();
+    bool getThermostatMode();
+
+#### Parameters
+None
+
+#### Returns
+Flag about set particular action mode.
+
+#### See also
+[configInterruptMode(), configThermostatMode()](#configActionMode)
+
+[getConfiguration()](#getConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="configConversionRate"></a>
+## configConversionRate()
+#### Description
+The method sets conversion rate bits in the cached configuration value before its sending to the sensor by the method [setConfiguration()](#setConfiguration). The rate is determined with corresponding library class constant.
+
+#### Syntax
+    void configConversionRate(uint8_t conversionRate);
+
+#### Parameters
+- **conversionRate**: Value determining conversion rate. It fallbacks to least significant 2 bits.
+  - *Valid values*: [gbj\_tmp102::CONVERSION\_RATE\_025HZ](#conversions) ~ [gbj\_tmp102::CONVERSION\_RATE\_8HZ](#conversions) or [gbj\_tmp102::CONVERSION\_PERIOD\_4000MS](#conversions) ~ [gbj\_tmp102::CONVERSION\_PERIOD\_125MS](#conversions)
+  - *Default value*: none
+
+#### Returns
+None
+
+#### See also
+[getConversionRate()](#getConversionRate)
+
+[setConfiguration()](#setConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="getConversionRate"></a>
+## getConversionRate()
+#### Description
+The method provides current conversion rate in form of value of pair of conversion rate bits from the cached configuration value. That value can be compared to corresponding library class constants in order to determine conversion frequency or period.
+
+#### Syntax
+    uint8_t getConversionRate();
+
+#### Parameters
+None
+
+#### Returns
+One of constants from ranges [gbj\_tmp102::CONVERSION\_RATE\_025HZ](#conversions) ~ [gbj\_tmp102::CONVERSION\_RATE\_8HZ](#conversions) or [gbj\_tmp102::CONVERSION\_PERIOD\_4000MS](#conversions) ~ [gbj\_tmp102::CONVERSION\_PERIOD\_125MS](#conversions).
+
+#### See also
+[configConversionRate()](#configConversionRate)
+
+[getConfiguration()](#getConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="configFaultQueue"></a>
+## configFaultQueue()
+#### Description
+The method sets fault queue bits in the cached configuration value before its sending to the sensor by the method [setConfiguration()](#setConfiguration). The queue is determined with corresponding library class constant and states the number of consecutive faults for triggering ALERT pin change.
+
+#### Syntax
+    void configFaultQueue(uint8_t faults);
+
+#### Parameters
+- **faults**: Value determining consecutive faults for alerting. It fallbacks to least significant 2 bits.
+  - *Valid values*: [gbj\_tmp102::FAULT\_QUEUE\_1](#conversions) ~ [gbj\_tmp102::FAULT\_QUEUE\_6](#conversions)
+  - *Default value*: none
+
+#### Returns
+None
+
+#### See also
+[getFaultQueue()](#getFaultQueue)
+
+[setConfiguration()](#setConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="getFaultQueue"></a>
+## getFaultQueue()
+#### Description
+The method provides current consecutive faults in form of value of pair of fault queue bits from the cached configuration value. That value can be compared to corresponding library class constants in order to determine number of consecutive faults.
+
+#### Syntax
+    uint8_t getFaultQueue();
+
+#### Parameters
+None
+
+#### Returns
+One of constants from range [gbj\_tmp102::FAULT\_QUEUE\_1](#conversions) ~ [gbj\_tmp102::FAULT\_QUEUE\_6](#conversions).
+
+#### See also
+[configFaultQueue()](#configFaultQueue)
+
+[getConfiguration()](#getConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="configOneshotMode"></a>
+## configOneshotMode()
+#### Description
+The method turns on one-shot temperature measurement mode in the cached configuration value before its sending to the sensor by the method [setConfiguration()](#setConfiguration).
+- This mode is utilized by the method [measurementTemperatureOneshot()](#measurementTemperatureOneshot) for one-shot temperature measurement.
+
+#### Syntax
+    void configOneshotMode();
+
+#### Parameters
+None
+
+#### Returns
+None
+
+#### See also
+[getOneshotMode()](#getOneshotMode)
+
+[setConfiguration()](#setConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="getOneshotMode"></a>
+## getOneshotMode()
+#### Description
+The method provides current consecutive faults in form of value of pair of fault queue bits from the cached configuration value. That value can be compared to corresponding library class constants in order to determine number of consecutive faults.
+
+#### Syntax
+    bool getOneshotMode();
+
+#### Parameters
+None
+
+#### Returns
+Flag about set one-shot measurement mode.
+
+#### See also
+[configOneshotMode()](#configOneshotMode)
+
 [getConfiguration()](#getConfiguration)
 
 [Back to interface](#interface)
