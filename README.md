@@ -103,6 +103,7 @@ The sensor configuration implemented in the library is based on updating cached 
 - [reset()](#reset)
 - [measureTemperature()](#measureTemperature)
 - [measureTemperatureOneshot()](#measureTemperatureOneshot)
+- [calculateTemperature()](#calculateTemperature)
 
 #### Setters
 - [setConfiguration()](#setConfiguration)
@@ -291,6 +292,36 @@ Temperature in centigrade or the error value [gbj\_tmp102::ERROR\_MEASURE\_TEMP]
 
 #### See also
 [measureTemperature()](#measureTemperature)
+
+[Back to interface](#interface)
+
+
+<a id="calculateTemperature"></a>
+## calculateTemperature()
+#### Description
+The particular method wraps a formula for calculating temperature in centigrades from 16-bit word from temperature register or vice-versa.
+- The methods are suitable for storing temperatures in EEPROM as binary word instead of as float number.
+
+#### Syntax
+    float calculateTemperature(int16_t wordMeasure);
+    int16_t calculateTemperature(float temperature);
+
+#### Parameters
+- **wordMeasure**: Temperature binary word of temperature register. If the least significant bit is set and there is extended mode bit set in configuration register, the value is considered in 13-bit resolution.
+  - *Valid values*: integer
+  - *Default value*: none
+
+- **temperature**: Temperature in centigrade.
+  - *Valid values*: -55.0 ~ 150.0
+  - *Default value*: none
+
+#### Returns
+Temperature in centigrade or binary word representing temperature.
+
+#### See also
+[setAlertLow(), setAlertHigh(), setAlerts()](#setAlertValue)
+
+[getAlertLow(), getAlertHigh()](#getAlertValue)
 
 [Back to interface](#interface)
 

@@ -282,6 +282,33 @@ float getAlertHigh();
 uint8_t getConfiguration();
 
 
+/*
+  Calculate temperature or temperature register value.
+
+  DESCRIPTION:
+  The overloaded method wraps a formula for calculating temperature in centigrades
+  from 16-bit word or vice-versa.
+  - The methods are suitable for storing temperatures in EEPROM as binary word
+    instead of as float numbers.
+
+  PARAMETERS:
+  wordMeasure - Measured binary word. If the least significant bit is set and
+                there is extended mode bit set in configuration register, the
+                value is considered in 13-bit resolution.
+                - Data type: integer
+                - Default value: none
+                - Limited range: 0 ~ 0xFFFF
+  temperature - Temperature in centigrades.
+                - Data type: float
+                - Default value: none
+                - Limited range: -55.0 ~ 150.0
+  RETURN:
+  Temperature in centigrade, or binary word, or error code ERROR_MEASURE_TEMP.
+*/
+float calculateTemperature(int16_t wordMeasure);
+int16_t calculateTemperature(float temperature);
+
+
 private:
 //------------------------------------------------------------------------------
 // Private constants
@@ -313,9 +340,12 @@ enum ConfigBits
   CONFIG_R1 = 14,  // Converter resolution
   CONFIG_OS = 15,  // One-shot conversion
 };  // Configuration bits order in config register word
-enum Resetting
+enum Params
 {
-  RESET_REG_CONFIG = 0x60A0,  // Configuration register word after software reset
+  PARAM_RESET = 0x60A0,  // Configuration register word after software reset
+  PARAM_TEMP_BIT = 0.0625f,  // Temperature sensitivity in centigrades per bit
+  PARAM_TEMP_MAX = 150.0f,  // Maximum of temperature range
+  PARAM_TEMP_MIN = -55.0f,  // Minimum of temperature range
 };
 
 //------------------------------------------------------------------------------
@@ -347,29 +377,6 @@ uint8_t setAddress(uint8_t address);
   Result code.
 */
 uint8_t init();
-
-
-/*
-  Calculate temperature or temperature register value.
-
-  DESCRIPTION:
-  The overloaded method wraps a formula for calculating temperature in centigrades
-  from 16-bit word or vice-versa.
-
-  PARAMETERS:
-  wordMeasure - Measured binary word.
-                - Data type: integer
-                - Default value: none
-                - Limited range: 0 ~ 0xFFFF
-  temperature - Temperature in centigrades.
-                - Data type: float
-                - Default value: none
-                - Limited range: -55.0 ~ 150.0
-  RETURN:
-  Temperature in centigrade, or binary word, or error code ERROR_MEASURE_TEMP.
-*/
-float calculateTemperature(int16_t wordMeasure);
-int16_t calculateTemperature(float temperature);
 
 
 /*
