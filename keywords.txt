@@ -14,6 +14,7 @@ begin	KEYWORD2
 reset	KEYWORD2
 measureTemperature	KEYWORD2
 measureTemperatureOneshot	KEYWORD2
+calculateTemperature	KEYWORD2
 setConfiguration	KEYWORD2
 setAlertLow	KEYWORD2
 setAlertHigh	KEYWORD2

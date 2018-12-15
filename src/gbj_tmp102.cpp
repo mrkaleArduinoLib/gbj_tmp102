@@ -55,6 +55,35 @@ float gbj_tmp102::measureTemperatureOneshot()
 }
 
 
+float gbj_tmp102::calculateTemperature(int16_t wordMeasure)
+{
+  // Extended mode (13-bit resolution)
+  if (wordMeasure & B1 && getExtendedMode())
+  {
+    wordMeasure >>= 3;
+    if (wordMeasure > 0x0FFF) wordMeasure |= 0xE000;  // 2s complement
+  }
+  // Normal mode (12-bit resolution)
+  else
+  {
+    wordMeasure >>= 4;
+    if (wordMeasure > 0x07FF) wordMeasure |= 0xF000;  // 2s complement
+  }
+  float temperature = (float) wordMeasure * PARAM_TEMP_BIT;
+  return temperature;
+}
+
+
+int16_t gbj_tmp102::calculateTemperature(float temperature)
+{
+  if (temperature > PARAM_TEMP_MAX) temperature = PARAM_TEMP_MAX;
+  if (temperature < PARAM_TEMP_MIN) temperature = PARAM_TEMP_MIN;
+  int16_t wordMeasure = round(temperature / PARAM_TEMP_BIT);
+  wordMeasure <<= getExtendedMode() ? 3 : 4;
+  return wordMeasure;
+}
+
+
 //-------------------------------------------------------------------------
 // Setters
 //-------------------------------------------------------------------------
@@ -190,34 +219,6 @@ uint8_t gbj_tmp102::getConfiguration()
 //------------------------------------------------------------------------------
 // Auxilliary methods
 //------------------------------------------------------------------------------
-float gbj_tmp102::calculateTemperature(int16_t wordMeasure)
-{
-  // Extended mode (13-bit resolution)
-  if (wordMeasure & B1)
-  {
-    wordMeasure >>= 3;
-    if (wordMeasure > 0x0FFF) wordMeasure |= 0xE000;  // 2s complement
-  }
-  else
-  {
-    wordMeasure >>= 4;
-    if (wordMeasure > 0x07FF) wordMeasure |= 0xF000;  // 2s complement
-  }
-  float temperature = (float) wordMeasure * 0.0625;
-  return temperature;
-}
-
-
-int16_t gbj_tmp102::calculateTemperature(float temperature)
-{
-  if (temperature > 150.0) temperature = 150.0;
-  if (temperature < -55.0) temperature = -55.0;
-  int16_t wordMeasure = round(temperature / 0.0625);
-  wordMeasure <<= getExtendedMode() ? 3 : 4;
-  return wordMeasure;
-}
-
-
 uint8_t gbj_tmp102::activateRegister(uint8_t cmdRegister)
 {
   if (_status.pointerRegister != cmdRegister)
@@ -235,3 +236,24 @@ uint8_t gbj_tmp102::sensorSend(uint16_t command, uint16_t data)
   _status.pointerRegister = command;
   return getLastResult();
 }
+<<<<<<< HEAD
+=======
+
+
+uint8_t gbj_tmp102::sensorSend(uint16_t data)
+{
+  if (busSend(data)) return getLastResult();
+  _status.pointerRegister = data;
+  return getLastResult();
+}
+
+
+uint8_t gbj_tmp102::init()
+{
+  _status.pointerRegister = CMD_REG_NONE;
+  if (getConfiguration()) return getLastResult();
+  if (_status.configRegister != PARAM_RESET) return setLastResult(ERROR_RESET);
+  wait(TIMING_CONVERSION);
+  return getLastResult();
+}
+>>>>>>> 4ab5d5e8cb375029dbc26f211b7674c549b1d0ae
