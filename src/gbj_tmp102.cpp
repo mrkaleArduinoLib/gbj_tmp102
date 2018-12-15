@@ -236,24 +236,3 @@ uint8_t gbj_tmp102::sensorSend(uint16_t command, uint16_t data)
   _status.pointerRegister = command;
   return getLastResult();
 }
-<<<<<<< HEAD
-=======
-
-
-uint8_t gbj_tmp102::sensorSend(uint16_t data)
-{
-  if (busSend(data)) return getLastResult();
-  _status.pointerRegister = data;
-  return getLastResult();
-}
-
-
-uint8_t gbj_tmp102::init()
-{
-  _status.pointerRegister = CMD_REG_NONE;
-  if (getConfiguration()) return getLastResult();
-  if (_status.configRegister != PARAM_RESET) return setLastResult(ERROR_RESET);
-  wait(TIMING_CONVERSION);
-  return getLastResult();
-}
->>>>>>> 4ab5d5e8cb375029dbc26f211b7674c549b1d0ae
