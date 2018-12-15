@@ -4,6 +4,8 @@ const String gbj_tmp102::VERSION = "GBJ_TMP102 1.0.0";
 
 uint8_t gbj_tmp102::begin(uint8_t address)
 {
+  _status.pointerRegister = CMD_REG_NONE;
+  if (busGeneralReset()) return setLastResult(ERROR_RESET);
   if (setAddress(address)) return getLastResult();
   if (reset()) return getLastResult();
   return getLastResult();
@@ -12,8 +14,12 @@ uint8_t gbj_tmp102::begin(uint8_t address)
 
 uint8_t gbj_tmp102::reset()
 {
-  if (busGeneralReset()) return setLastResult(ERROR_RESET);
-  if (init()) return setLastResult(ERROR_RESET);
+  if (_status.pointerRegister != CMD_REG_NONE && busGeneralReset()) return setLastResult(ERROR_RESET);
+  if (getConfiguration()) return getLastResult();
+  if (_status.configRegister != RESET_REG_CONFIG) return setLastResult(ERROR_RESET);
+  getAlertLow();
+  getAlertHigh();
+  wait(TIMING_CONVERSION);
   return getLastResult();
 }
 
@@ -21,8 +27,9 @@ uint8_t gbj_tmp102::reset()
 float gbj_tmp102::measureTemperature()
 {
   uint8_t data[2];
+  setBusRpte();
   if (activateRegister(CMD_REG_TEMP)) return getLastResult();
-  if (busReceive(data, sizeof(data)/sizeof(data[0]))) return setLastResult(ERROR_MEASURE_TEMP);
+  if (busReceive(data, 2)) return setLastResult(ERROR_MEASURE_TEMP);
   if (getConfiguration()) return getLastResult();
   int16_t wordMeasure;
   wordMeasure = data[0] << 8;  // MSB
@@ -70,8 +77,11 @@ uint8_t gbj_tmp102::setAddress(uint8_t address)
 
 uint8_t gbj_tmp102::setConfiguration(bool flagWait)
 {
+  bool origBusStop = getBusStop();
+  if (!flagWait) setBusRpte();
   if (sensorSend(CMD_REG_CONF, _status.configRegister)) return getLastResult();
   if (flagWait) wait(TIMING_CONVERSION);
+  setBusStopFlag(origBusStop);
   if (getConfiguration()) return getLastResult();
   return getLastResult();
 }
@@ -95,30 +105,37 @@ void gbj_tmp102::configFaultQueue(uint8_t faults)
 
 uint8_t gbj_tmp102::setAlertLow(float temperature)
 {
-  if (temperature > getAlertHigh()) return setLastResult(ERROR_SETUP_TEMP);
-  if (sensorSend(CMD_REG_TLOW, calculateTemperature(temperature))) return getLastResult();
+  int16_t temp = calculateTemperature(temperature);
+  if (temp == _status.alertLow) return getLastResult();
+  if (temp > _status.alertHigh) return setLastResult(ERROR_SETUP_TEMP);
+  if (sensorSend(CMD_REG_TLOW, _status.alertLow = temp)) return getLastResult();
   return getLastResult();
 }
 
 
 uint8_t gbj_tmp102::setAlertHigh(float temperature)
 {
-  if (temperature < getAlertLow()) return setLastResult(ERROR_SETUP_TEMP);
-  if (sensorSend(CMD_REG_THIGH, calculateTemperature(temperature))) return getLastResult();
+  int16_t temp = calculateTemperature(temperature);
+  if (temp == _status.alertHigh) return getLastResult();
+  if (temp < _status.alertLow) return setLastResult(ERROR_SETUP_TEMP);
+  if (sensorSend(CMD_REG_THIGH, _status.alertHigh = temp)) return getLastResult();
   return getLastResult();
 }
 
 
 uint8_t gbj_tmp102::setAlerts(float temperatureLow, float temperatureHigh)
 {
+  bool origBusStop = getBusStop();
   if (temperatureLow > temperatureHigh)
   {
     float temp = temperatureLow;
     temperatureLow = temperatureHigh;
     temperatureHigh = temp;
   }
-  if (sensorSend(CMD_REG_TLOW, calculateTemperature(temperatureLow))) return getLastResult();
-  if (sensorSend(CMD_REG_THIGH, calculateTemperature(temperatureHigh))) return getLastResult();
+  setBusRpte();
+  if (setAlertLow(temperatureLow)) return getLastResult();
+  setBusStopFlag(origBusStop);
+  if (setAlertHigh(temperatureHigh)) return getLastResult();
   return getLastResult();
 }
 
@@ -129,34 +146,41 @@ uint8_t gbj_tmp102::setAlerts(float temperatureLow, float temperatureHigh)
 float gbj_tmp102::getAlertLow()
 {
   uint8_t data[2];
+  bool origBusStop = getBusStop();
+  setBusRpte();
   if (activateRegister(CMD_REG_TLOW)) return getLastResult();
-  if (busReceive(data, sizeof(data)/sizeof(data[0]))) return setLastResult(ERROR_MEASURE_TEMP);
-  int16_t wordMeasure;
-  wordMeasure = data[0] << 8;  // MSB
-  wordMeasure |= data[1];  // LSB
-  if (getExtendedMode()) wordMeasure |= B1;
-  return calculateTemperature(wordMeasure);
+  setBusStopFlag(origBusStop);
+  if (busReceive(data, 2)) return setLastResult(ERROR_MEASURE_TEMP);
+  _status.alertLow = data[0] << 8;  // MSB
+  _status.alertLow |= data[1];  // LSB
+  if (getExtendedMode()) _status.alertLow |= B1;
+  return calculateTemperature(_status.alertLow);
 }
 
 
 float gbj_tmp102::getAlertHigh()
 {
   uint8_t data[2];
+  bool origBusStop = getBusStop();
+  setBusRpte();
   if (activateRegister(CMD_REG_THIGH)) return getLastResult();
-  if (busReceive(data, sizeof(data)/sizeof(data[0]))) return setLastResult(ERROR_MEASURE_TEMP);
-  int16_t wordMeasure;
-  wordMeasure = data[0] << 8;  // MSB
-  wordMeasure |= data[1];  // LSB
-  if (getExtendedMode()) wordMeasure |= B1;
-  return calculateTemperature(wordMeasure);
+  setBusStopFlag(origBusStop);
+  if (busReceive(data, 2)) return setLastResult(ERROR_MEASURE_TEMP);
+  _status.alertHigh = data[0] << 8;  // MSB
+  _status.alertHigh |= data[1];  // LSB
+  if (getExtendedMode()) _status.alertHigh |= B1;
+  return calculateTemperature(_status.alertHigh);
 }
 
 
 uint8_t gbj_tmp102::getConfiguration()
 {
   uint8_t data[2];
+  bool origBusStop = getBusStop();
+  setBusRpte();
   if (activateRegister(CMD_REG_CONF)) return getLastResult();
-  if (busReceive(data, sizeof(data)/sizeof(data[0]))) return getLastResult();
+  setBusStopFlag(origBusStop);
+  if (busReceive(data, 2)) return getLastResult();
   _status.configRegister = data[0] << 8;  // MSB
   _status.configRegister |= data[1];  // LSB
   return getLastResult();
@@ -164,7 +188,7 @@ uint8_t gbj_tmp102::getConfiguration()
 
 
 //------------------------------------------------------------------------------
-// Private methods
+// Auxilliary methods
 //------------------------------------------------------------------------------
 float gbj_tmp102::calculateTemperature(int16_t wordMeasure)
 {
@@ -198,7 +222,8 @@ uint8_t gbj_tmp102::activateRegister(uint8_t cmdRegister)
 {
   if (_status.pointerRegister != cmdRegister)
   {
-    if (sensorSend(cmdRegister)) return getLastResult();
+    if (busSend(cmdRegister)) return getLastResult();
+    _status.pointerRegister = cmdRegister;
   }
   return getLastResult();
 }
@@ -208,23 +233,5 @@ uint8_t gbj_tmp102::sensorSend(uint16_t command, uint16_t data)
 {
   if (busSend(command, data)) return getLastResult();
   _status.pointerRegister = command;
-  return getLastResult();
-}
-
-
-uint8_t gbj_tmp102::sensorSend(uint16_t data)
-{
-  if (busSend(data)) return getLastResult();
-  _status.pointerRegister = data;
-  return getLastResult();
-}
-
-
-uint8_t gbj_tmp102::init()
-{
-  _status.pointerRegister = CMD_REG_NONE;
-  if (getConfiguration()) return getLastResult();
-  if (_status.configRegister != RESET_REG_CONFIG) return setLastResult(ERROR_RESET);
-  wait(TIMING_CONVERSION);
   return getLastResult();
 }

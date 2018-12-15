@@ -50,7 +50,7 @@ const float ALERT_TEMP_HIGH = 30.5;  // Upper limit for alerting by sensor
 
 // Software configuration
 gbj_tmp102 Sensor = gbj_tmp102();
-// gbj_tmp102 Sensor = gbj_tmp102(gbj_tmp102::CLOCK_100KHZ, true, D2, D1);
+// gbj_tmp102 Sensor = gbj_tmp102(gbj_tmp102::CLOCK_100KHZ, D2, D1);
 // gbj_tmp102 Sensor = gbj_tmp102(gbj_tmp102::CLOCK_400KHZ);
 float tempValue;
 
@@ -80,7 +80,7 @@ void errorHandler(String location)
       break;
 
     case gbj_tmp102::ERROR_NACK_DATA:
-      Serial.println("ERROR_PINS");
+      Serial.println("ERROR_NACK_DATA");
       break;
 
     case gbj_tmp102::ERROR_NACK_OTHER:

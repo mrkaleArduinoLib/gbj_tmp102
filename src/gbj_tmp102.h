@@ -13,7 +13,7 @@
   CREDENTIALS:
   Author: Libor Gabaj
   GitHub: https://github.com/mrkaleArduinoLib/gbj_tmp102.git
- */
+*/
 #ifndef GBJ_TMP102_H
 #define GBJ_TMP102_H
 
@@ -66,9 +66,8 @@ enum FaultQueue
 /*
   Constructor taken from parent class.
 */
-gbj_tmp102(uint32_t clockSpeed = CLOCK_100KHZ, bool busStop = true, \
-  uint8_t pinSDA = 4, uint8_t pinSCL = 5) \
-: gbj_twowire(clockSpeed, busStop, pinSDA, pinSCL) {};
+gbj_tmp102(uint32_t clockSpeed = CLOCK_100KHZ, uint8_t pinSDA = 4, uint8_t pinSCL = 5) \
+: gbj_twowire(clockSpeed, pinSDA, pinSCL) {};
 
 
 /*
@@ -325,6 +324,8 @@ struct
 {
   uint8_t pointerRegister;  // Recent value of pointer register
   uint16_t configRegister;  // Recent read or desired value of configuration register
+  int16_t alertLow;  // Low temperature limit cache
+  int16_t alertHigh;  // High temperature limit cache
 } _status;
 
 
@@ -332,21 +333,7 @@ struct
 // Private methods - they return result code if not stated else
 //------------------------------------------------------------------------------
 uint8_t setAddress(uint8_t address);
-
-
-/*
-  Initialize sensor.
-
-  DESCRIPTION:
-  The method reads configuration register and stores it in the instance objec
-  and executes other initialization tasks.
-
-  PARAMETERS: none
-
-  RETURN:
-  Result code.
-*/
-uint8_t init();
+uint8_t sensorSend(uint16_t command, uint16_t data);
 
 
 /*
@@ -388,10 +375,6 @@ int16_t calculateTemperature(float temperature);
   Result code.
 */
 uint8_t activateRegister(uint8_t cmdRegister);
-
-// Wrappers for parent busSend method in order to embed caching pointer register
-uint8_t sensorSend(uint16_t command, uint16_t data);
-uint8_t sensorSend(uint16_t data);
 
 };
 

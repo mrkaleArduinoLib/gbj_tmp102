@@ -31,7 +31,7 @@ const float ALERT_TEMP_HIGH = 30.5;  // Upper limit for alerting by sensor
 
 // Software configuration
 gbj_tmp102 Sensor = gbj_tmp102();
-// gbj_tmp102 Sensor = gbj_tmp102(gbj_tmp102::CLOCK_100KHZ, true, D2, D1);
+// gbj_tmp102 Sensor = gbj_tmp102(gbj_tmp102::CLOCK_100KHZ, D2, D1);
 // gbj_tmp102 Sensor = gbj_tmp102(gbj_tmp102::CLOCK_400KHZ);
 
 
@@ -60,7 +60,7 @@ void errorHandler(String location)
       break;
 
     case gbj_tmp102::ERROR_NACK_DATA:
-      Serial.println("ERROR_PINS");
+      Serial.println("ERROR_NACK_DATA");
       break;
 
     case gbj_tmp102::ERROR_NACK_OTHER:
@@ -118,13 +118,6 @@ void setup()
     return;
   }
 
-  // Reset sensor
-  if (Sensor.begin()) // Use default address
-  {
-    errorHandler("Begin");
-    return;
-  }
-
   // Set temperature limits
   Serial.println("Limits BEFORE");
   Serial.println("Alert LOW  = " + String(Sensor.getAlertLow()) + " 'C");
@@ -144,6 +137,7 @@ void setup()
   Serial.println("Alert LOW  = " + String(Sensor.getAlertLow()) + " 'C");
   Serial.println("Alert HIGH = " + String(Sensor.getAlertHigh()) + " 'C");
   Serial.println("---");
+  Serial.println("END");
 }
 
 
