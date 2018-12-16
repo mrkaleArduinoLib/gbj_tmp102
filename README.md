@@ -150,21 +150,13 @@ The library does not need special constructor and destructor, so that the inheri
 - All the constructor parameters can be changed dynamically with corresponding setters later in a sketch.
 
 #### Syntax
-    gbj_tmp102(uint32_t clockSpeed, bool busStop, uint8_t pinSDA, uint8_t pinSCL);
+    gbj_tmp102(uint32_t clockSpeed, uint8_t pinSDA, uint8_t pinSCL);
 
 #### Parameters
 <a id="prm_busClock"></a>
 - **clockSpeed**: Two-wire bus clock frequency in Hertz. If the clock is not from enumeration, it fallbacks to 100 kHz.
   - *Valid values*: gbj\_tmp102::CLOCK\_100KHZ, gbj\_tmp102::CLOCK\_400KHZ
   - *Default value*: gbj\_tmp102::CLOCK\_100KHZ
-
-
-<a id="prm_busStop"></a>
-- **busStop**: Logical flag about releasing bus after end of transmission.
-  - *Valid values*: true, false
-    - **true**: Releases the bus after data transmission and enables other master devices to control the bus.
-    - **false**: Keeps connection to the bus and enables to begin further data transmission immediately.
-  - *Default value*: true
 
 
 <a id="prm_pinSDA"></a>
@@ -187,7 +179,7 @@ The method has all arguments defaulted and calling without any parameters is equ
 
 ```cpp
   gbj_tmp102 Sensor = gbj_tmp102(); // It is equivalent to
-  gbj_tmp102 Sensor = gbj_tmp102(gbj_tmp102::CLOCK_100KHZ, true, D2, D1);
+  gbj_tmp102 Sensor = gbj_tmp102(gbj_tmp102::CLOCK_100KHZ, D2, D1);
 ```
 
 [Back to interface](#interface)

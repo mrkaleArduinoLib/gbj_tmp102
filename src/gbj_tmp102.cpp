@@ -4,6 +4,7 @@ const String gbj_tmp102::VERSION = "GBJ_TMP102 1.0.0";
 
 uint8_t gbj_tmp102::begin(uint8_t address)
 {
+  if (gbj_twowire::begin()) return getLastResult();
   _status.pointerRegister = CMD_REG_NONE;
   if (busGeneralReset()) return setLastResult(ERROR_RESET);
   if (setAddress(address)) return getLastResult();
