@@ -111,10 +111,6 @@ void errorHandler(String location)
       Serial.println("ERROR_MEASURE_TEMP");
       break;
 
-    case gbj_tmp102::ERROR_SETUP_TEMP:
-      Serial.println("ERROR_SETUP_TEMP");
-      break;
-
     default:
       Serial.println("Uknown error");
       break;

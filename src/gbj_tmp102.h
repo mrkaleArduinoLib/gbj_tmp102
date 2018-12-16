@@ -38,7 +38,6 @@ enum ErrorCodes
 {
   ERROR_RESET = 255,  // Sensor reset failure
   ERROR_MEASURE_TEMP = 254,  // Measuring temperature failure
-  ERROR_SETUP_TEMP = 253,  // Limit temperature failure
 };
 enum ConvertionRate
 {
@@ -322,7 +321,8 @@ enum Commands
 };
 enum Timing
 {
-  TIMING_CONVERSION = 35,  // Maximal conversion time in milliseconds
+  TIMING_CONVERSION_TYP = 26,  // Typical conversion time in milliseconds
+  TIMING_CONVERSION_MAX = 35,  // Maximal conversion time in milliseconds
 };
 enum ConfigBits
 {
@@ -342,9 +342,9 @@ enum ConfigBits
 enum Params
 {
   PARAM_RESET = 0x60A0,  // Configuration register word after software reset
-  PARAM_TEMP_BIT = 0.0625f,  // Temperature sensitivity in centigrades per bit
-  PARAM_TEMP_MAX = 150.0f,  // Maximum of temperature range
-  PARAM_TEMP_MIN = -55.0f,  // Minimum of temperature range
+  PARAM_TEMP_RES = 16,  // Temperature resolution in bits per centigrade (1/0.0625)
+  PARAM_TEMP_MAX = 150,  // Maximum of temperature range in centigrages
+  PARAM_TEMP_MIN = -55,  // Minimum of temperature range in centigrages
 };
 
 //------------------------------------------------------------------------------
@@ -354,8 +354,6 @@ struct
 {
   uint8_t pointerRegister;  // Recent value of pointer register
   uint16_t configRegister;  // Recent read or desired value of configuration register
-  int16_t alertLow;  // Low temperature limit cache
-  int16_t alertHigh;  // High temperature limit cache
 } _status;
 
 

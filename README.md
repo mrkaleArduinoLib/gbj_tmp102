@@ -82,14 +82,13 @@ Library for the temperature sensors *TMP102* communicating on two-wire (I2C) bus
 #### Error codes
 - **gbj\_tmp102::ERROR\_RESET**: Resetting failure.
 - **gbj\_tmp102::ERROR\_MEASURE\_TEMP**: Measuring temperature failure.
-- **gbj\_tmp102::ERROR\_SETUP\_TEMP**: Temperature limits failure.
 
 Other error codes as well as result code are inherited from the parent library [gbjTwoWire](#dependency).
 
 
 <a id="configuration"></a>
 ## Configuration
-The configuration of the sensor is realized by the configuration register, which consist of several configuration bits determining its behaviour. The library stores (caches) the value of the configuration register in its instance object.
+The configuration of the sensor is realized by the configuration register, which consist of several configuration bits determining its behavior. The library stores (caches) the value of the configuration register in its instance object.
 
 The sensor configuration implemented in the library is based on updating cached configuration value in advanced and finally to send that value to the sensor and write all configuration bits to configuration register at once in order to reduce communication on the two-wire bus in contrast to sending configuration bits to the sensor individually.
 
@@ -372,7 +371,7 @@ Some of [result or error codes](#constants).
 ## setAlertLow(), setAlertHigh(), setAlerts()
 #### Description
 The particular method writes either lower or upper temperature limit, or both at once to the sensor.
-- If an illogical limit value in comparison to its counterpart is provided, the error [gbj\_tmp102::ERROR\_SETUP\_TEMP](#errors)  is raised, e.g., than lower limit is greater than upper limit.
+- A method for particular temperature limit does not check its relation to the related limit. It should be done in a sketch. So that, those methods allows to set high limit less than low limit.
 - If both limits are set at once, they are sorted ascending at first.
 
 #### Syntax

@@ -16,10 +16,8 @@ uint8_t gbj_tmp102::reset()
 {
   if (_status.pointerRegister != CMD_REG_NONE && busGeneralReset()) return setLastResult(ERROR_RESET);
   if (getConfiguration()) return getLastResult();
-  if (_status.configRegister != RESET_REG_CONFIG) return setLastResult(ERROR_RESET);
-  getAlertLow();
-  getAlertHigh();
-  wait(TIMING_CONVERSION);
+  if (_status.configRegister != PARAM_RESET) return setLastResult(ERROR_RESET);
+  wait(TIMING_CONVERSION_TYP);
   return getLastResult();
 }
 
@@ -27,9 +25,11 @@ uint8_t gbj_tmp102::reset()
 float gbj_tmp102::measureTemperature()
 {
   uint8_t data[2];
+  bool origBusStop = getBusStop();
   setBusRpte();
   if (activateRegister(CMD_REG_TEMP)) return getLastResult();
   if (busReceive(data, 2)) return setLastResult(ERROR_MEASURE_TEMP);
+  setBusStopFlag(origBusStop);
   if (getConfiguration()) return getLastResult();
   int16_t wordMeasure;
   wordMeasure = data[0] << 8;  // MSB
@@ -45,12 +45,13 @@ float gbj_tmp102::measureTemperatureOneshot()
   configOneshotMode();
   if (setConfiguration(false)) return getLastResult();
   // Wait for conversion
+  setDelayReceive(TIMING_CONVERSION_TYP);
   do
   {
     if (getConfiguration()) return getLastResult();
-    wait(TIMING_CONVERSION);
   }
   while(!getOneshotMode());
+  resetDelayReceive();
   return measureTemperature();
 }
 
@@ -69,16 +70,16 @@ float gbj_tmp102::calculateTemperature(int16_t wordMeasure)
     wordMeasure >>= 4;
     if (wordMeasure > 0x07FF) wordMeasure |= 0xF000;  // 2s complement
   }
-  float temperature = (float) wordMeasure * PARAM_TEMP_BIT;
+  float temperature = (float) wordMeasure / PARAM_TEMP_RES;
   return temperature;
 }
 
 
 int16_t gbj_tmp102::calculateTemperature(float temperature)
 {
-  if (temperature > PARAM_TEMP_MAX) temperature = PARAM_TEMP_MAX;
-  if (temperature < PARAM_TEMP_MIN) temperature = PARAM_TEMP_MIN;
-  int16_t wordMeasure = round(temperature / PARAM_TEMP_BIT);
+  if (temperature > (float) PARAM_TEMP_MAX) temperature = (float) PARAM_TEMP_MAX;
+  if (temperature < (float) PARAM_TEMP_MIN) temperature = (float) PARAM_TEMP_MIN;
+  int16_t wordMeasure = round(temperature * PARAM_TEMP_RES);
   wordMeasure <<= getExtendedMode() ? 3 : 4;
   return wordMeasure;
 }
@@ -109,7 +110,7 @@ uint8_t gbj_tmp102::setConfiguration(bool flagWait)
   bool origBusStop = getBusStop();
   if (!flagWait) setBusRpte();
   if (sensorSend(CMD_REG_CONF, _status.configRegister)) return getLastResult();
-  if (flagWait) wait(TIMING_CONVERSION);
+  if (flagWait) wait(TIMING_CONVERSION_TYP);
   setBusStopFlag(origBusStop);
   if (getConfiguration()) return getLastResult();
   return getLastResult();
@@ -134,20 +135,14 @@ void gbj_tmp102::configFaultQueue(uint8_t faults)
 
 uint8_t gbj_tmp102::setAlertLow(float temperature)
 {
-  int16_t temp = calculateTemperature(temperature);
-  if (temp == _status.alertLow) return getLastResult();
-  if (temp > _status.alertHigh) return setLastResult(ERROR_SETUP_TEMP);
-  if (sensorSend(CMD_REG_TLOW, _status.alertLow = temp)) return getLastResult();
+  if (sensorSend(CMD_REG_TLOW, calculateTemperature(temperature))) return getLastResult();
   return getLastResult();
 }
 
 
 uint8_t gbj_tmp102::setAlertHigh(float temperature)
 {
-  int16_t temp = calculateTemperature(temperature);
-  if (temp == _status.alertHigh) return getLastResult();
-  if (temp < _status.alertLow) return setLastResult(ERROR_SETUP_TEMP);
-  if (sensorSend(CMD_REG_THIGH, _status.alertHigh = temp)) return getLastResult();
+  if (sensorSend(CMD_REG_THIGH, calculateTemperature(temperature))) return getLastResult();
   return getLastResult();
 }
 
@@ -180,10 +175,11 @@ float gbj_tmp102::getAlertLow()
   if (activateRegister(CMD_REG_TLOW)) return getLastResult();
   setBusStopFlag(origBusStop);
   if (busReceive(data, 2)) return setLastResult(ERROR_MEASURE_TEMP);
-  _status.alertLow = data[0] << 8;  // MSB
-  _status.alertLow |= data[1];  // LSB
-  if (getExtendedMode()) _status.alertLow |= B1;
-  return calculateTemperature(_status.alertLow);
+  int16_t wordMeasure;
+  wordMeasure = data[0] << 8;  // MSB
+  wordMeasure |= data[1];  // LSB
+  if (getExtendedMode()) wordMeasure |= B1;
+  return calculateTemperature(wordMeasure);
 }
 
 
@@ -195,10 +191,11 @@ float gbj_tmp102::getAlertHigh()
   if (activateRegister(CMD_REG_THIGH)) return getLastResult();
   setBusStopFlag(origBusStop);
   if (busReceive(data, 2)) return setLastResult(ERROR_MEASURE_TEMP);
-  _status.alertHigh = data[0] << 8;  // MSB
-  _status.alertHigh |= data[1];  // LSB
-  if (getExtendedMode()) _status.alertHigh |= B1;
-  return calculateTemperature(_status.alertHigh);
+  int16_t wordMeasure;
+  wordMeasure = data[0] << 8;  // MSB
+  wordMeasure |= data[1];  // LSB
+  if (getExtendedMode()) wordMeasure |= B1;
+  return calculateTemperature(wordMeasure);
 }
 
 
