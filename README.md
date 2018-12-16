@@ -14,6 +14,7 @@ Library for the temperature sensors *TMP102* communicating on two-wire (I2C) bus
   - Without the delay after switching to extended mode the reading is doubled to real temperature at first reading after switching mode.
   - Without the delay after switching to normal mode the reading is halved to real temperature at first reading after switching mode.
   - Library does not have implemented such specific delay after mode switching due to small usefulness of the extended mode.
+  - Library caches pointer and configuration register.
 
 
 #### Particle hardware configuration
@@ -331,12 +332,10 @@ Temperature in centigrade or binary word representing temperature.
 The method writes the new content of the configuration register stored in the instance object (configuration cache) to the sensor. This content should has been prepared by methods of type `configXXX` right before.
 
 #### Syntax
-    uint8_t setConfiguration(bool flagWait);
+    uint8_t setConfiguration();
 
 #### Parameters
-- **flagWait**: Flag about waiting after writing to the configuration register. The waiting delay is defined in the library internally. No delay is used in the method [measureTemperatureOneshot()](#measureTemperatureOneshot).
-  - *Valid values*: true, false
-  - *Default value*: true
+None
 
 #### Returns
 Some of [result or error codes](#constants).

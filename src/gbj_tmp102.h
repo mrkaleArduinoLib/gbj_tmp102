@@ -146,17 +146,12 @@ float measureTemperatureOneshot();
   The method sends prepared configuration register value to the sensor's
   configuration register.
 
-  PARAMETERS:
-  flagWait - Flag about waiting after writing to the configuration register.
-             - Data type: boolean
-             - Default value: true
-             - Limited range: true - wait for sensor settlement
-                              false - continue immediately
+  PARAMETERS: None
 
   RETURN:
   Result code.
 */
-uint8_t setConfiguration(bool flagWait=true);
+uint8_t setConfiguration();
 // Preparation of configuration register value
 inline void configExtendedMode() { _status.configRegister |= (1 << CONFIG_EM); };
 inline void configNormalMode() { _status.configRegister &= ~(1 << CONFIG_EM); };

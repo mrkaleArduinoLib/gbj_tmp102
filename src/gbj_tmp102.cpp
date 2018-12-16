@@ -43,8 +43,9 @@ float gbj_tmp102::measureTemperatureOneshot()
   // Configure sensor
   configShutdownMode();
   configOneshotMode();
-  if (setConfiguration(false)) return getLastResult();
+  if (setConfiguration()) return getLastResult();
   // Wait for conversion
+  setTimestampReceive();
   setDelayReceive(TIMING_CONVERSION_TYP);
   do
   {
@@ -105,14 +106,9 @@ uint8_t gbj_tmp102::setAddress(uint8_t address)
 }
 
 
-uint8_t gbj_tmp102::setConfiguration(bool flagWait)
+uint8_t gbj_tmp102::setConfiguration()
 {
-  bool origBusStop = getBusStop();
-  if (!flagWait) setBusRpte();
   if (sensorSend(CMD_REG_CONF, _status.configRegister)) return getLastResult();
-  if (flagWait) wait(TIMING_CONVERSION_TYP);
-  setBusStopFlag(origBusStop);
-  if (getConfiguration()) return getLastResult();
   return getLastResult();
 }
 
