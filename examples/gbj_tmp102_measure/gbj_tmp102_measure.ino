@@ -47,7 +47,7 @@ void errorHandler(String location)
       Serial.println("ERROR_PINS");
       break;
 
-    case gbj_htu21::ERROR_RCV_DATA:
+    case gbj_tmp102::ERROR_RCV_DATA:
       Serial.println("ERROR_RCV_DATA");
       break;
 
@@ -119,18 +119,13 @@ void setup()
 
 void loop()
 {
-  if (Sensor.isError()) return;
-
   // Measure
   tempValue = Sensor.measureTemperature();
   // tempValue = Sensor.measureTemperatureOneshot();
-  if (Sensor.isSuccess())
-  {
-    Serial.println(tempValue, 4);
-  }
-  else
+  if (Sensor.isError())
   {
     errorHandler("Temperature");
   }
+  Serial.println(tempValue, 4);
   delay(PERIOD_MEASURE);
 }

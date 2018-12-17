@@ -89,9 +89,11 @@ Other error codes as well as result code are inherited from the parent library [
 
 <a id="configuration"></a>
 ## Configuration
-The configuration of the sensor is realized by the configuration register, which consist of several configuration bits determining its behavior. The library stores (caches) the value of the configuration register in its instance object.
+The configuration of the sensor is realized by the configuration register, which consists of several configuration bits determining its behavior. The library stores (caches) the value of the configuration register in its instance object.
 
 The sensor configuration implemented in the library is based on updating cached configuration value in advanced and finally to send that value to the sensor and write all configuration bits to configuration register at once in order to reduce communication on the two-wire bus in contrast to sending configuration bits to the sensor individually.
+
+It is good practice or sometimes necessary to read the configuration register right before using getters, especially those related to particular configuration bits in order to get its current value.
 
 
 <a id="interface"></a>
@@ -110,6 +112,8 @@ The sensor configuration implemented in the library is based on updating cached 
 - [setAlertLow()](#setAlertValue)
 - [setAlertHigh()](#setAlertValue)
 - [setAlerts()](#setAlertValue)
+- [setUseValuesTyp()](#setUseValues)
+- [setUseValuesMax()](#setUseValues)
 - [configAlertActiveLow()](#configAlertMode)
 - [configAlertActiveHigh()](#configAlertMode)
 - [configExtendedMode()](#configResolutionMode)
@@ -138,6 +142,7 @@ The sensor configuration implemented in the library is based on updating cached 
 - [getConversionRate()](#getConversionRate)
 - [getFaultQueue()](#getFaultQueue)
 - [getOneshotMode()](#getOneshotMode)
+- [getErrorT()](#getErrorT)
 
 Other possible setters and getters are inherited from the parent library [gbjTwoWire](#dependency) and described there.
 
@@ -258,7 +263,7 @@ The method measures temperature.
 None
 
 #### Returns
-Temperature in centigrade or the error value [gbj\_tmp102::ERROR\_MEASURE\_TEMP](#errors) with corresponding error code in the library object.
+Temperature in centigrade or erroneous value returned by [getErrorT()](#getErrorT). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
 
 #### See also
 [measureTemperatureOneshot()](#measureTemperatureOneshot)
@@ -280,7 +285,7 @@ The method configures shutdown mode and one-shot conversion of the sensor. It wa
 None
 
 #### Returns
-Temperature in centigrade or the error value [gbj\_tmp102::ERROR\_MEASURE\_TEMP](#errors) with corresponding error code in the library object.
+Temperature in centigrade or erroneous value returned by [getErrorT()](#getErrorT). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
 
 #### See also
 [measureTemperature()](#measureTemperature)
@@ -397,7 +402,7 @@ The particular method reads upper or lower temperature limit from the sensor.
 None
 
 #### Returns
-Lower or upper temperature limit or an [error code](#errors) cached in the library object.
+Lower or upper temperature limit in centigrade or erroneous value returned by [getErrorT()](#getErrorT). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
 
 #### See also
 [setAlertLow(), setAlertHigh(), setAlerts()](#setAlertValue)
@@ -752,5 +757,43 @@ Flag about set one-shot measurement mode.
 [configOneshotMode()](#configOneshotMode)
 
 [getConfiguration()](#getConfiguration)
+
+[Back to interface](#interface)
+
+
+<a id="setUseValues"></a>
+## setUseValuesTyp(), setUseValuesMax()
+#### Description
+The particular method sets the internal flag whether typical or maximal values from the datasheet should be used regarding conversion and reset times.
+
+#### Syntax
+    void setUseValuesTyp();
+    void setUseValuesMax();
+
+#### Parameters
+None
+
+#### Returns
+None
+
+[Back to interface](#interface)
+
+
+<a id="getErrorT"></a>
+## getErrorT()
+#### Description
+The method returns virtually wrong temperature value at erroneous measurement usually at failure of two-wire bus.
+
+#### Syntax
+    float getErrorT();
+
+#### Parameters
+None
+
+#### Returns
+Erroneous temperature.
+
+#### See also
+[measureTemperature()](#measureTemperature)
 
 [Back to interface](#interface)

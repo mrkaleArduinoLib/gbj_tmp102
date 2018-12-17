@@ -53,6 +53,7 @@ gbj_tmp102 Sensor = gbj_tmp102();
 // gbj_tmp102 Sensor = gbj_tmp102(gbj_tmp102::CLOCK_100KHZ, D2, D1);
 // gbj_tmp102 Sensor = gbj_tmp102(gbj_tmp102::CLOCK_400KHZ);
 float tempValue;
+byte alert;
 
 
 void errorHandler(String location)
@@ -73,7 +74,7 @@ void errorHandler(String location)
       Serial.println("ERROR_PINS");
       break;
 
-    case gbj_htu21::ERROR_RCV_DATA:
+    case gbj_tmp102::ERROR_RCV_DATA:
       Serial.println("ERROR_RCV_DATA");
       break;
 
@@ -152,51 +153,43 @@ void setup()
     errorHandler("Configuration");
     return;
   }
-
   // Set temperature limits
   if (Sensor.setAlertLow(ALERT_TEMP_LOW))
   {
     errorHandler("Alert LOW");
     return;
   }
-  else
-  {
-    Serial.println("Alert LOW  = " + String(Sensor.getAlertLow()) + " 'C");
-  }
   if (Sensor.setAlertHigh(ALERT_TEMP_HIGH))
   {
     errorHandler("Alert HIGH");
     return;
   }
-  else
-  {
-    Serial.println("Alert HIGH = " + String(Sensor.getAlertHigh()) + " 'C");
-  }
+  Serial.println("Alert LOW  = " + String(Sensor.getAlertLow()) + " 'C");
+  Serial.println("Alert HIGH = " + String(Sensor.getAlertHigh()) + " 'C");
   Serial.println("---");
 }
 
 
 void loop()
 {
-  if (Sensor.isError()) return;
-
   // Measure
   tempValue = Sensor.measureTemperature();
   // tempValue = Sensor.measureTemperatureOneshot();
-  if (Sensor.isSuccess())
+  if (Sensor.isError())
   {
-    Serial.println("Temperature = " + String(tempValue) + " 'C");
-  }
-  else
-  {
-    Serial.println();
     errorHandler("Temperature");
   }
-
+  Serial.println("Temperature = " + String(tempValue) + " 'C");
   // Evaluate alert
-  digitalWrite(PIN_LED, digitalRead(PIN_TMP102_ALERT));
-  Serial.println("Alert = " + String(Sensor.getAlert() ? "ON" : "OFF"));
-
+  alert = digitalRead(PIN_TMP102_ALERT);
+  digitalWrite(PIN_LED, alert);
+  // Read alert status
+  if (Sensor.getConfiguration())
+  {
+    errorHandler("Configuration");
+  }
+  Serial.println("Alert on pin = " + String(alert ? "ON" : "OFF"));
+  Serial.println("Alert in reg = " + String(Sensor.getAlert() ? "ON" : "OFF"));
   Serial.println();
   delay(PERIOD_MEASURE);
 }

@@ -106,20 +106,6 @@ uint8_t reset();
 
 
 /*
-  Measure temperature.
-
-  DESCRIPTION:
-  The method measures ambient temperature in centigrades.
-
-  PARAMETERS: none
-
-  RETURN:
-  Temperature in centigrades or error code ERROR_MEASURE_TEMP.
-*/
-float measureTemperature();
-
-
-/*
   Measure temperature in one-shot mode.
 
   DESCRIPTION:
@@ -139,6 +125,8 @@ float measureTemperatureOneshot();
 //------------------------------------------------------------------------------
 // Public setters - they usually return result code.
 //------------------------------------------------------------------------------
+inline void setUseValuesTyp() { _status.useValuesTyp = true; };
+inline void setUseValuesMax() { _status.useValuesTyp = false; };
 /*
   Write configuration register value to the sensor.
 
@@ -241,23 +229,10 @@ inline bool getAlertActiveLow() { return !getAlertActiveHigh(); };
 inline bool getOneshotMode() { return _status.configRegister & (1 << CONFIG_OS); };
 inline uint8_t getConversionRate() { return (_status.configRegister >> CONFIG_CR0) & B11; };
 inline uint8_t getFaultQueue() { return (_status.configRegister >> CONFIG_F0) & B11; };
-
-
-/*
-  Read high or low temperature limit from the sensor.
-
-  DESCRIPTION:
-  The particular method reads THIGH or TLOW register and calculates its
-  temperature in centigrades according to the extended mode taken from
-  configuration register.
-
-  PARAMETERS: none
-
-  RETURN:
-  Temperature limit in centigrades or error code ERROR_MEASURE_TEMP.
-*/
-float getAlertLow();
-float getAlertHigh();
+inline float getErrorT() { return (float) PARAM_BAD_TEMP; };
+inline float measureTemperature() { return readTemperature(CMD_REG_TEMP); };
+inline float getAlertLow() { return readTemperature(CMD_REG_TLOW); };
+inline float getAlertHigh() { return readTemperature(CMD_REG_THIGH); };
 
 
 /*
@@ -340,6 +315,7 @@ enum Params
   PARAM_TEMP_RES = 16,  // Temperature resolution in bits per centigrade (1/0.0625)
   PARAM_TEMP_MAX = 150,  // Maximum of temperature range in centigrages
   PARAM_TEMP_MIN = -55,  // Minimum of temperature range in centigrages
+  PARAM_BAD_TEMP = 999,  // Unreasonable wrong temperature value
 };
 
 //------------------------------------------------------------------------------
@@ -349,12 +325,14 @@ struct
 {
   uint8_t pointerRegister;  // Recent value of pointer register
   uint16_t configRegister;  // Recent read or desired value of configuration register
+  bool useValuesTyp;  // Flag about using typical values from datasheet
 } _status;
 
 
 //------------------------------------------------------------------------------
 // Private methods - they return result code if not stated else
 //------------------------------------------------------------------------------
+inline bool getUseValuesTyp() { return _status.useValuesTyp; };
 uint8_t setAddress(uint8_t address);
 uint8_t sensorSend(uint16_t command, uint16_t data);
 
@@ -375,6 +353,26 @@ uint8_t sensorSend(uint16_t command, uint16_t data);
   Result code.
 */
 uint8_t activateRegister(uint8_t cmdRegister);
+
+
+/*
+  Read temperature value or limits from the sensor.
+
+  DESCRIPTION:
+  The method reads temperature or THIGH, or TLOW register and calculates its
+  temperature in centigrades according to the extended mode taken from
+  configuration register.
+
+  PARAMETERS:
+  cmdRegister - Command for particular alert limit internal register.
+                - Data type: non-negative integer
+                - Default value: none
+                - Limited range: CMD_REG_TEMP, CMD_REG_THIGH
+
+  RETURN:
+  Temperature limit in centigrades or error code ERROR_MEASURE_TEMP.
+*/
+float readTemperature(uint8_t cmdRegister);
 
 };
 

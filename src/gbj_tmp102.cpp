@@ -8,6 +8,7 @@ uint8_t gbj_tmp102::begin(uint8_t address)
   _status.pointerRegister = CMD_REG_NONE;
   if (busGeneralReset()) return setLastResult(ERROR_RESET);
   if (setAddress(address)) return getLastResult();
+  setUseValuesMax();
   if (reset()) return getLastResult();
   return getLastResult();
 }
@@ -18,24 +19,29 @@ uint8_t gbj_tmp102::reset()
   if (_status.pointerRegister != CMD_REG_NONE && busGeneralReset()) return setLastResult(ERROR_RESET);
   if (getConfiguration()) return getLastResult();
   if (_status.configRegister != PARAM_RESET) return setLastResult(ERROR_RESET);
-  wait(TIMING_CONVERSION_TYP);
+  wait(getUseValuesTyp() ? TIMING_CONVERSION_TYP : TIMING_CONVERSION_MAX);
   return getLastResult();
 }
 
 
-float gbj_tmp102::measureTemperature()
+float gbj_tmp102::readTemperature(uint8_t cmdRegister)
 {
   uint8_t data[2];
   bool origBusStop = getBusStop();
-  setBusRpte();
-  if (activateRegister(CMD_REG_TEMP)) return getLastResult();
-  if (busReceive(data, 2)) return setLastResult(ERROR_MEASURE_TEMP);
-  setBusStopFlag(origBusStop);
-  if (getConfiguration()) return getLastResult();
-  int16_t wordMeasure;
-  wordMeasure = data[0] << 8;  // MSB
-  wordMeasure |= data[1];  // LSB
-  return calculateTemperature(wordMeasure);
+  do
+  {
+    setBusRpte();
+    if (activateRegister(cmdRegister)) break;
+    setBusStopFlag(origBusStop);
+    if (busReceive(data, 2)) break;
+    int16_t wordMeasure;
+    wordMeasure = data[0] << 8;  // MSB
+    wordMeasure |= data[1];  // LSB
+    if (getExtendedMode()) wordMeasure |= B1;
+    return calculateTemperature(wordMeasure);
+  } while(false);
+  setLastResult(ERROR_MEASURE_TEMP);
+  return getErrorT();
 }
 
 
@@ -46,8 +52,8 @@ float gbj_tmp102::measureTemperatureOneshot()
   configOneshotMode();
   if (setConfiguration()) return getLastResult();
   // Wait for conversion
+  setDelayReceive(getUseValuesTyp() ? TIMING_CONVERSION_TYP : TIMING_CONVERSION_MAX);
   setTimestampReceive();
-  setDelayReceive(TIMING_CONVERSION_TYP);
   do
   {
     if (getConfiguration()) return getLastResult();
@@ -164,38 +170,6 @@ uint8_t gbj_tmp102::setAlerts(float temperatureLow, float temperatureHigh)
 //------------------------------------------------------------------------------
 // Getters
 //------------------------------------------------------------------------------
-float gbj_tmp102::getAlertLow()
-{
-  uint8_t data[2];
-  bool origBusStop = getBusStop();
-  setBusRpte();
-  if (activateRegister(CMD_REG_TLOW)) return getLastResult();
-  setBusStopFlag(origBusStop);
-  if (busReceive(data, 2)) return setLastResult(ERROR_MEASURE_TEMP);
-  int16_t wordMeasure;
-  wordMeasure = data[0] << 8;  // MSB
-  wordMeasure |= data[1];  // LSB
-  if (getExtendedMode()) wordMeasure |= B1;
-  return calculateTemperature(wordMeasure);
-}
-
-
-float gbj_tmp102::getAlertHigh()
-{
-  uint8_t data[2];
-  bool origBusStop = getBusStop();
-  setBusRpte();
-  if (activateRegister(CMD_REG_THIGH)) return getLastResult();
-  setBusStopFlag(origBusStop);
-  if (busReceive(data, 2)) return setLastResult(ERROR_MEASURE_TEMP);
-  int16_t wordMeasure;
-  wordMeasure = data[0] << 8;  // MSB
-  wordMeasure |= data[1];  // LSB
-  if (getExtendedMode()) wordMeasure |= B1;
-  return calculateTemperature(wordMeasure);
-}
-
-
 uint8_t gbj_tmp102::getConfiguration()
 {
   uint8_t data[2];

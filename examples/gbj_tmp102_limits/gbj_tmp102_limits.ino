@@ -53,7 +53,7 @@ void errorHandler(String location)
       Serial.println("ERROR_PINS");
       break;
 
-    case gbj_htu21::ERROR_RCV_DATA:
+    case gbj_tmp102::ERROR_RCV_DATA:
       Serial.println("ERROR_RCV_DATA");
       break;
 
@@ -121,21 +121,41 @@ void setup()
   // Set temperature limits
   Serial.println("Limits BEFORE");
   Serial.println("Alert LOW  = " + String(Sensor.getAlertLow()) + " 'C");
+  if (Sensor.isError())
+  {
+    errorHandler("Read Alert LOW");
+    return;
+  }
   Serial.println("Alert HIGH = " + String(Sensor.getAlertHigh()) + " 'C");
+  if (Sensor.isError())
+  {
+    errorHandler("Read Alert HIGH");
+    return;
+  }
   Serial.println("---");
   if (Sensor.setAlertLow(ALERT_TEMP_LOW))
   {
-    errorHandler("Alert LOW");
+    errorHandler("Write Alert LOW");
     return;
   }
   if (Sensor.setAlertHigh(ALERT_TEMP_HIGH))
   {
-    errorHandler("Alert HIGH");
+    errorHandler("Write Alert HIGH");
     return;
   }
   Serial.println("Limits AFTER");
   Serial.println("Alert LOW  = " + String(Sensor.getAlertLow()) + " 'C");
+  if (Sensor.isError())
+  {
+    errorHandler("Reload Alert LOW");
+    return;
+  }
   Serial.println("Alert HIGH = " + String(Sensor.getAlertHigh()) + " 'C");
+  if (Sensor.isError())
+  {
+    errorHandler("Reload Alert HIGH");
+    return;
+  }
   Serial.println("---");
   Serial.println("END");
 }

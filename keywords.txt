@@ -19,6 +19,8 @@ setConfiguration	KEYWORD2
 setAlertLow	KEYWORD2
 setAlertHigh	KEYWORD2
 setAlerts	KEYWORD2
+setUseValuesTyp	KEYWORD2
+setUseValuesMax	KEYWORD2
 configExtendedMode	KEYWORD2
 configNormalMode	KEYWORD2
 configShutdownMode	KEYWORD2
@@ -43,6 +45,7 @@ getConversionRate	KEYWORD2
 getFaultQueue	KEYWORD2
 getAlertLow	KEYWORD2
 getAlertHigh	KEYWORD2
+getErrorT	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
