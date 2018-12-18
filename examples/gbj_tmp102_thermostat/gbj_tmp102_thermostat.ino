@@ -112,6 +112,10 @@ void errorHandler(String location)
 #endif
 
     // Sensor specific
+    case gbj_tmp102::ERROR_RESET:
+      Serial.println("ERROR_RESET");
+      break;
+
     case gbj_tmp102::ERROR_MEASURE_TEMP:
       Serial.println("ERROR_MEASURE_TEMP");
       break;
