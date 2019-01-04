@@ -109,7 +109,7 @@ uint8_t gbj_tmp102::setAddress(uint8_t address)
       address = ADDRESS_GND;
       break;
   }
-  return gbj_twowire::setAddress(address);
+  return gbj_twowire::registerAddress(address);
 }
 
 

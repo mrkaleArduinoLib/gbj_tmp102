@@ -230,9 +230,9 @@ inline bool getOneshotMode() { return _status.configRegister & (1 << CONFIG_OS);
 inline uint8_t getConversionRate() { return (_status.configRegister >> CONFIG_CR0) & B11; };
 inline uint8_t getFaultQueue() { return (_status.configRegister >> CONFIG_F0) & B11; };
 inline float getErrorT() { return (float) PARAM_BAD_TEMP; };
-inline float measureTemperature() { return readTemperature(CMD_REG_TEMP); };
 inline float getAlertLow() { return readTemperature(CMD_REG_TLOW); };
 inline float getAlertHigh() { return readTemperature(CMD_REG_THIGH); };
+inline float measureTemperature() { return readTemperature(CMD_REG_TEMP); };
 
 
 /*
