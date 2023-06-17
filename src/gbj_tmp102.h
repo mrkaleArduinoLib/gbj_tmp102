@@ -512,17 +512,12 @@ private:
   */
   inline ResultCodes sensorRead(Commands cmdRegister, uint16_t *data)
   {
-    uint8_t buffer[2];
     if (isError(activateRegister(cmdRegister)))
     {
       return getLastResult();
     }
-    if (isError(busReceive(buffer, sizeof(buffer) / sizeof(buffer[0]))))
-    {
-      return getLastResult();
-    }
-    *data = buffer[0] << 8 | buffer[1];
-    return getLastResult();
+    return busReceive(
+      reinterpret_cast<uint8_t *>(data), sizeof(uint16_t), true);
   }
 
   /*
