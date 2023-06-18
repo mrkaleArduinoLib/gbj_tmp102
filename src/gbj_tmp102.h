@@ -517,7 +517,7 @@ private:
       return getLastResult();
     }
     return busReceive(
-      reinterpret_cast<uint8_t *>(data), sizeof(uint16_t), true);
+      reinterpret_cast<uint8_t *>(data), sizeof(uint16_t), REVERSE);
   }
 
   /*
