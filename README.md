@@ -137,7 +137,7 @@ It is good practice or sometimes necessary to read the configuration register ri
 * [getConversionRate()](#getConversionRate)
 * [getConversionPeriod()](#getConversionPeriod)
 * [getFaults()](#getFaults)
-* [getErrorT()](#getErrorT)
+* [getErrorValue()](#getErrorValue)
 
 Other possible setters and getters are inherited from the parent library [gbjTwoWire](#dependency) and described there.
 
@@ -273,7 +273,7 @@ The method measures temperature.
 None
 
 #### Returns
-Temperature in centigrade or erroneous value returned by [getErrorT()](#getErrorT). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
+Temperature in centigrade or erroneous value returned by [getErrorValue()](#getErrorValue). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
 
 #### See also
 [measureTemperatureOneshot()](#measureTemperatureOneshot)
@@ -296,7 +296,7 @@ The method configures shutdown mode and one-shot conversion of the sensor. It wa
 None
 
 #### Returns
-Temperature in centigrade or erroneous value returned by [getErrorT()](#getErrorT). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
+Temperature in centigrade or erroneous value returned by [getErrorValue()](#getErrorValue). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
 
 #### See also
 [measureTemperature()](#measureTemperature)
@@ -392,7 +392,7 @@ The particular method reads upper or lower temperature limit from the sensor.
 None
 
 #### Returns
-Lower or upper temperature limit in centigrade or erroneous value returned by [getErrorT()](#getErrorT). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
+Lower or upper temperature limit in centigrade or erroneous value returned by [getErrorValue()](#getErrorValue). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
 
 #### See also
 [setAlertLow(), setAlertHigh()](#setAlertValue)
@@ -857,15 +857,15 @@ Number of conscutive faults for a temperature alert activation.
 [Back to interface](#interface)
 
 
-<a id="getErrorT"></a>
+<a id="getErrorValue"></a>
 
-## getErrorT()
+## getErrorValue()
 
 #### Description
 The method returns virtually wrong temperature value at erroneous measurement usually at failure of two-wire bus.
 
 #### Syntax
-    float getErrorT()
+    float getErrorValue()
 
 #### Parameters
 None

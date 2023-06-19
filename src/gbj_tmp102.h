@@ -352,7 +352,7 @@ public:
     uint8_t index = (status_.configRegister >> ConfigBits::CONFIG_F0) & B11;
     return faults[index];
   }
-  inline float getErrorT()
+  inline float getErrorValue()
   {
     return static_cast<float>(Params::PARAM_BAD_TEMP);
   }
@@ -613,7 +613,7 @@ private:
     if (isError(sensorRead(cmdRegister, &data)))
     {
       setLastResult(ResultCodes::ERROR_MEASURE);
-      return getErrorT();
+      return getErrorValue();
     }
     return calculateTemperature(static_cast<int16_t>(data));
   }
