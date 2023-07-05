@@ -4,7 +4,7 @@
 
   DESCRIPTION:
   Library for temperature sensor TMP102 on two-wire (I2C) bus.
-  - Configuration of the sensor is based od preliminar preparation of the
+  - Configuration of the sensor is based on preliminary preparation of the
   configuration register value stored in the internal status structure and
   finally write this value to the sensor.
 
